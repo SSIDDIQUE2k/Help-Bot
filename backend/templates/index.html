@@ -196,6 +196,42 @@
             margin-top: 20px;
             border: 1px solid #f5c6cb;
         }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px 4px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .severity-low { background: #d4edda; color: #155724; }
+        .severity-medium { background: #fff3cd; color: #856404; }
+        .severity-high { background: #f8d7da; color: #721c24; }
+        
+        .category-connection { background: #cce5ff; color: #004085; }
+        .category-configuration { background: #e2e3e5; color: #383d41; }
+        .category-authentication { background: #ffeaa7; color: #6c757d; }
+        .category-data { background: #d1ecf1; color: #0c5460; }
+        .category-general { background: #f8f9fa; color: #495057; }
+        
+        .enhanced-true { background: #d4edda; color: #155724; }
+        .enhanced-false { background: #f8d7da; color: #721c24; }
+        
+        .suggestion-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .suggestion-item:hover {
+            background: #e9ecef;
+        }
     </style>
 </head>
 <body>
@@ -236,6 +272,16 @@
                 <div class="result-section">
                     <h3>📝 Your Issue</h3>
                     <p id="userIssue"></p>
+                    <div id="metaInfo" style="display: none; margin-top: 10px; font-size: 0.9em; color: #666;">
+                        <span id="severity" class="badge"></span>
+                        <span id="category" class="badge"></span>
+                        <span id="enhanced" class="badge"></span>
+                    </div>
+                </div>
+                
+                <div id="conversationalSection" class="result-section" style="display: none;">
+                    <h3>🤖 AI Assistant</h3>
+                    <p id="conversationalResponse" style="background: #f0f8ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;"></p>
                 </div>
                 
                 <div class="result-section">
@@ -246,6 +292,11 @@
                 <div class="result-section">
                     <h3>🔧 Resolution Steps</h3>
                     <p id="resolutionSteps"></p>
+                </div>
+                
+                <div id="suggestionsSection" class="result-section" style="display: none;">
+                    <h3>💭 Related Queries</h3>
+                    <div id="suggestions"></div>
                 </div>
             </div>
             
@@ -316,6 +367,55 @@
                 document.getElementById('userIssue').textContent = result.user_issue || 'No issue description available';
                 document.getElementById('explanation').textContent = result.explanation || 'No explanation available';
                 document.getElementById('resolutionSteps').textContent = result.resolution_steps || 'No resolution steps available';
+                
+                // Display meta information
+                if (result.severity || result.category || result.enhanced !== undefined) {
+                    const metaInfo = document.getElementById('metaInfo');
+                    const severitySpan = document.getElementById('severity');
+                    const categorySpan = document.getElementById('category');
+                    const enhancedSpan = document.getElementById('enhanced');
+                    
+                    if (result.severity) {
+                        severitySpan.textContent = `Severity: ${result.severity.toUpperCase()}`;
+                        severitySpan.className = `badge severity-${result.severity}`;
+                    }
+                    
+                    if (result.category) {
+                        categorySpan.textContent = `Category: ${result.category}`;
+                        categorySpan.className = `badge category-${result.category}`;
+                    }
+                    
+                    if (result.enhanced !== undefined) {
+                        enhancedSpan.textContent = result.enhanced ? 'AI Enhanced' : 'Basic Mode';
+                        enhancedSpan.className = `badge enhanced-${result.enhanced}`;
+                    }
+                    
+                    metaInfo.style.display = 'block';
+                }
+                
+                // Display conversational response
+                if (result.conversational_response) {
+                    document.getElementById('conversationalResponse').textContent = result.conversational_response;
+                    document.getElementById('conversationalSection').style.display = 'block';
+                }
+                
+                // Display suggestions
+                if (result.suggestions && result.suggestions.length > 0) {
+                    const suggestionsDiv = document.getElementById('suggestions');
+                    suggestionsDiv.innerHTML = '';
+                    
+                    result.suggestions.forEach(suggestion => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.className = 'suggestion-item';
+                        suggestionItem.textContent = suggestion;
+                        suggestionItem.onclick = () => {
+                            document.getElementById('errorInput').value = suggestion;
+                        };
+                        suggestionsDiv.appendChild(suggestionItem);
+                    });
+                    
+                    document.getElementById('suggestionsSection').style.display = 'block';
+                }
                 
                 document.getElementById('results').style.display = 'block';
                 

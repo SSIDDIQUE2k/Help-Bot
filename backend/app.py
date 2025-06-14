@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 from helpbot.confluence_client import ConfluenceClient
 from helpbot.html_extractor import HTMLExtractor
+from helpbot.ollama_service import OllamaService
 
 # Load environment variables from .env
 load_dotenv('../.env')
@@ -35,6 +36,7 @@ confluence_client = ConfluenceClient(
     space_key=CONFLUENCE_SPACE_KEY
 )
 html_extractor = HTMLExtractor()
+ollama_service = OllamaService()
 
 class QueryRequest(BaseModel):
     query: str
@@ -45,6 +47,11 @@ class ErrorResponse(BaseModel):
     resolution_steps: str
     resolution: str | None = None
     status: str = "success"
+    enhanced: bool = False
+    severity: str = "medium"
+    category: str = "general"
+    conversational_response: str | None = None
+    suggestions: list[str] = []
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
@@ -111,22 +118,58 @@ async def process_query(request: QueryRequest) -> ErrorResponse:
             # Find the best match for the user's query
             best_match = html_extractor.find_best_match(user_query, all_entries)
             if best_match:
+                # Enhance with Ollama if available
+                enhanced_data = ollama_service.enhance_error_analysis(user_query, best_match)
+                
+                # Generate conversational response
+                conversational_response = ollama_service.generate_conversational_response(
+                    user_query, enhanced_data
+                )
+                
+                # Get suggestions
+                suggestions = ollama_service.suggest_related_queries(
+                    user_query, enhanced_data.get('category', 'general')
+                )
+                
                 return ErrorResponse(
                     user_issue=user_query,
-                    explanation=best_match.get("explanation", "No explanation found."),
-                    resolution_steps=best_match.get("resolution", "No resolution steps found."),
-                    resolution=best_match.get("resolution", "No resolution steps found."),
+                    explanation=enhanced_data.get("explanation", "No explanation found."),
+                    resolution_steps=enhanced_data.get("resolution", "No resolution steps found."),
+                    resolution=enhanced_data.get("resolution", "No resolution steps found."),
+                    enhanced=enhanced_data.get("enhanced", False),
+                    severity=enhanced_data.get("severity", "medium"),
+                    category=enhanced_data.get("category", "general"),
+                    conversational_response=conversational_response,
+                    suggestions=suggestions
                 )
         
         # Fallback to universal parser if no structured entries found
         logger.info(f"No structured entries found, using universal parser...")
         solution = html_extractor.find_best_solution(user_query, page_content)
         
+        # Enhance with Ollama if available
+        enhanced_data = ollama_service.enhance_error_analysis(user_query, solution)
+        
+        # Generate conversational response
+        conversational_response = ollama_service.generate_conversational_response(
+            user_query, enhanced_data
+        )
+        
+        # Get suggestions
+        suggestions = ollama_service.suggest_related_queries(
+            user_query, enhanced_data.get('category', 'general')
+        )
+        
         return ErrorResponse(
-            user_issue=solution.get("user_issue", user_query),
-            explanation=solution.get("explanation", "No explanation found."),
-            resolution_steps=solution.get("resolution_steps", "No resolution steps found."),
-            resolution=solution.get("resolution_steps", "No resolution steps found."),
+            user_issue=enhanced_data.get("user_issue", user_query),
+            explanation=enhanced_data.get("explanation", "No explanation found."),
+            resolution_steps=enhanced_data.get("resolution_steps", "No resolution steps found."),
+            resolution=enhanced_data.get("resolution_steps", "No resolution steps found."),
+            enhanced=enhanced_data.get("enhanced", False),
+            severity=enhanced_data.get("severity", "medium"),
+            category=enhanced_data.get("category", "general"),
+            conversational_response=conversational_response,
+            suggestions=suggestions
         )
         
     except HTTPException:
@@ -135,10 +178,38 @@ async def process_query(request: QueryRequest) -> ErrorResponse:
         logger.error(f"Unexpected error processing query '{request.query}': {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
 
+@app.get("/ollama-status")
+async def ollama_status():
+    """Check Ollama service status."""
+    try:
+        is_available = ollama_service.is_available()
+        return {
+            "status": "available" if is_available else "unavailable",
+            "model": ollama_service.model_name,
+            "base_url": ollama_service.base_url,
+            "message": "Ollama is ready for natural language processing" if is_available else "Ollama is not available - using basic mode"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error checking Ollama status: {str(e)}"
+        }
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "service": "helpbot"}
+    ollama_available = ollama_service.is_available()
+    return {
+        "status": "healthy", 
+        "service": "helpbot",
+        "ollama_available": ollama_available,
+        "features": {
+            "confluence_integration": True,
+            "natural_language_processing": ollama_available,
+            "error_enhancement": ollama_available,
+            "conversational_responses": ollama_available
+        }
+    }
 
 if __name__ == "__main__":
     import uvicorn

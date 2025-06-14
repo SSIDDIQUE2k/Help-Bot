@@ -1,143 +1,194 @@
 # HelpBot - AI Error Assistant
 
-A clean, simple AI error assistant that integrates with Confluence to provide specific error documentation and resolution steps.
+An intelligent error assistant that integrates with Confluence to provide instant solutions to technical issues. Now enhanced with **Ollama** for natural language processing and conversational AI responses.
 
-## Features
+## 🚀 Features
 
-- 🔍 **Simple Error Analysis**: Just paste your error and get 3 clear sections: Issue, Explanation, Resolution
-- 🔗 **Confluence Integration**: Connects directly to your Confluence space for documentation
-- 🧪 **Built-in Testing**: Test your Confluence connection with one click
-- 🎨 **Modern UI**: Clean, responsive interface with real-time status updates
-- ⚡ **Fast & Lightweight**: Minimal dependencies, focused functionality
+### Core Features
+- **Confluence Integration**: Automatically searches your Confluence knowledge base
+- **Intelligent Error Parsing**: Extracts structured error information from documentation
+- **Web Interface**: Clean, modern UI for easy interaction
+- **Real-time Connection Testing**: Verify Confluence connectivity
 
-## Quick Start
+### 🤖 AI Enhancement (New!)
+- **Natural Language Processing**: Powered by Ollama for intelligent error analysis
+- **Conversational Responses**: Get friendly, human-like explanations
+- **Error Categorization**: Automatic classification (connection, configuration, authentication, etc.)
+- **Severity Assessment**: Understand the impact level (low, medium, high)
+- **Smart Suggestions**: Related queries you might be interested in
+- **Enhanced Explanations**: Clear, step-by-step resolution instructions
 
-### 1. Install Dependencies
+## 🛠️ Installation
 
+### Prerequisites
+- Python 3.8+
+- Confluence account with API access
+- (Optional) Ollama for AI enhancement
+
+### Quick Setup
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/SSIDDIQUE2k/Help-Bot.git
+   cd Help-Bot
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+
+3. **Configure environment**:
+   Create a `.env` file in the root directory:
+   ```env
+   CONFLUENCE_URL=https://your-domain.atlassian.net/wiki
+   CONFLUENCE_USERNAME=your-email@domain.com
+   CONFLUENCE_API_TOKEN=your-api-token
+   CONFLUENCE_SPACE_KEY=YOUR_SPACE_KEY
+   ```
+
+4. **Set up Ollama (Optional but Recommended)**:
+   ```bash
+   python setup_ollama.py
+   ```
+   This will guide you through installing Ollama and downloading the AI model.
+
+5. **Start the application**:
+   ```bash
+   cd backend
+   python app.py
+   ```
+
+6. **Access the web interface**:
+   Open http://localhost:8000 in your browser
+
+## 🤖 Ollama Integration
+
+### Automatic Setup
+Run the setup script for guided installation:
 ```bash
-cd backend
-pip install -r requirements.txt
+python setup_ollama.py
 ```
 
-### 2. Configure Confluence
+### Manual Setup
+1. **Install Ollama**:
+   - macOS: `brew install ollama`
+   - Linux: `curl -fsSL https://ollama.ai/install.sh | sh`
+   - Windows: Download from https://ollama.ai/download
 
-Copy the example config and update with your details:
+2. **Start Ollama service**:
+   ```bash
+   ollama serve
+   ```
 
-```bash
-cp config.env.example config.env
-```
+3. **Pull a model**:
+   ```bash
+   ollama pull llama3.2
+   ```
 
-Edit `config.env` with your Confluence details:
+### Supported Models
+- `llama3.2` (recommended) - Fast and efficient
+- `llama3.1` - More capable but slower
+- `codellama` - Specialized for code-related errors
 
-```env
-CONFLUENCE_URL=https://your-domain.atlassian.net/wiki
-CONFLUENCE_USERNAME=your-email@domain.com
-CONFLUENCE_API_TOKEN=your-api-token
-CONFLUENCE_SPACE_KEY=DOCS
-```
-
-### 3. Run the Application
-
-```bash
-python app.py
-```
-
-The application will be available at `http://localhost:8000`
-
-## Configuration
-
-### Environment Variables
-
-- `CONFLUENCE_URL`: Your Confluence base URL
-- `CONFLUENCE_USERNAME`: Your Confluence username/email
-- `CONFLUENCE_API_TOKEN`: Your Confluence API token
-- `CONFLUENCE_SPACE_KEY`: The space key containing your error documentation
-
-### Getting Confluence API Token
-
-1. Go to https://id.atlassian.com/manage-profile/security/api-tokens
-2. Click "Create API token"
-3. Give it a name and copy the token
-4. Use your email as username and the token as password
-
-## Usage
-
-1. **Test Connection**: Click "Test Connection" to verify your Confluence setup
-2. **Enter Error**: Paste your error message or describe the issue
-3. **Get Results**: View the 3-part response:
-   - **Your Issue**: What you submitted
-   - **Explanation**: What the error means
-   - **Resolution Steps**: How to fix it
-
-## Project Structure
-
-```
-backend/
-├── app.py                 # Main FastAPI application
-├── requirements.txt       # Python dependencies
-├── config.env.example    # Configuration template
-├── helpbot/              # Core modules
-│   ├── __init__.py
-│   ├── confluence_client.py  # Confluence API client
-│   └── html_extractor.py     # HTML content parser
-├── templates/
-│   └── index.html        # Web interface
-└── scripts/
-    └── index_confluence.py  # Indexing utility
-```
-
-## API Endpoints
+## 📊 API Endpoints
 
 - `GET /` - Web interface
+- `POST /query` - Submit error queries
 - `GET /test-connection` - Test Confluence connection
-- `POST /query` - Analyze error (JSON: `{"query": "error description"}`)
-- `GET /health` - Health check
+- `GET /health` - Health check with feature status
+- `GET /ollama-status` - Check AI enhancement status
 
-## Troubleshooting
+## 🎯 Usage Examples
 
-### Connection Issues
-
-1. Verify your Confluence URL format: `https://domain.atlassian.net/wiki`
-2. Check your API token is valid and not expired
-3. Ensure your user has access to the specified space
-4. Test with the "Test Connection" button
-
-### No Results Found
-
-1. Check if your space contains error documentation
-2. Try different search terms
-3. Verify the space key is correct
-4. Use the indexing script to check content structure
-
-### Performance
-
-- The system caches search results for better performance
-- Large Confluence spaces may take longer to search
-- Consider creating a dedicated error documentation space
-
-## Development
-
-### Adding New Features
-
-The system is modular:
-
-- `confluence_client.py`: Handles all Confluence API interactions
-- `html_extractor.py`: Parses and extracts error information
-- `app.py`: Main application logic and API endpoints
-
-### Testing
-
-```bash
-# Test connection
-curl http://localhost:8000/test-connection
-
-# Test query
-curl -X POST http://localhost:8000/query \
-  -H "Content-Type: application/json" \
-  -d '{"query": "database connection error"}'
+### Basic Error Query
+```
+"Getting connection timeout error when connecting to database"
 ```
 
-## License
+### Specific Error Log
+```
+"Error Log 3999: AS2 connection failed"
+```
 
-MIT License - feel free to use and modify as needed.
-# Help-Bot
+### Natural Language Query
+```
+"Why is my API returning 500 errors?"
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+- `CONFLUENCE_URL` - Your Confluence base URL
+- `CONFLUENCE_USERNAME` - Your Confluence username/email
+- `CONFLUENCE_API_TOKEN` - Your Confluence API token
+- `CONFLUENCE_SPACE_KEY` - The space to search in
+
+### Ollama Configuration
+The Ollama service runs on `http://localhost:11434` by default. You can customize this in the `OllamaService` class.
+
+## 🏗️ Architecture
+
+```
+HelpBot/
+├── backend/
+│   ├── app.py                 # FastAPI main application
+│   ├── helpbot/
+│   │   ├── confluence_client.py    # Confluence API integration
+│   │   ├── html_extractor.py       # Error parsing logic
+│   │   └── ollama_service.py       # AI enhancement service
+│   ├── templates/
+│   │   └── index.html         # Web interface
+│   └── requirements.txt       # Python dependencies
+├── setup_ollama.py           # Ollama setup script
+├── .env                      # Environment configuration
+└── README.md
+```
+
+## 🚦 Status Indicators
+
+The web interface shows real-time status for:
+- **Confluence Connection**: Green (connected) / Red (disconnected)
+- **AI Enhancement**: "AI Enhanced" / "Basic Mode"
+- **Error Severity**: Low / Medium / High
+- **Error Category**: Connection / Configuration / Authentication / Data / General
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test with both basic and AI-enhanced modes
+5. Submit a pull request
+
+## 📝 License
+
+This project is open source and available under the MIT License.
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**Ollama not working?**
+- Ensure Ollama service is running: `ollama serve`
+- Check if model is downloaded: `ollama list`
+- Verify connection: `curl http://localhost:11434/api/version`
+
+**Confluence connection failed?**
+- Verify your API token is correct
+- Check if your Confluence URL includes `/wiki`
+- Ensure your user has access to the specified space
+
+**No error entries found?**
+- Check if your Confluence page has the expected format
+- Verify the space key is correct
+- Try the universal parser fallback
+
+## 🔮 Future Enhancements
+
+- [ ] Multi-language support
+- [ ] Custom model fine-tuning
+- [ ] Integration with other knowledge bases
+- [ ] Advanced error analytics
+- [ ] Team collaboration features
