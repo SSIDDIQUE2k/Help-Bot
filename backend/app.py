@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 from helpbot.confluence_client import ConfluenceClient
 from helpbot.html_extractor import HTMLExtractor
 
-# Load environment variables from config.env
-load_dotenv('config.env')
+# Load environment variables from .env
+load_dotenv('../.env')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
