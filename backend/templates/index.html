@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpBot - AI Error Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .connection-status {
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-testing {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .input-group {
+            margin-bottom: 30px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .input-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .result-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            background: #f8f9fa;
+        }
+        
+        .result-section h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .result-section p {
+            line-height: 1.6;
+            color: #495057;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 HelpBot</h1>
+            <p>AI Error Assistant with Confluence Integration</p>
+        </div>
+        
+        <div class="content">
+            <div id="connectionStatus" class="connection-status status-testing">
+                Testing connection to Confluence...
+            </div>
+            
+            <div class="input-group">
+                <label for="errorInput">Describe your error or paste error logs:</label>
+                <textarea 
+                    id="errorInput" 
+                    placeholder="Example: Getting 'Connection timeout' error when trying to connect to database..."
+                ></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button id="analyzeBtn" class="btn btn-primary">
+                    🔍 Analyze Error
+                </button>
+                <button id="testConnectionBtn" class="btn btn-secondary">
+                    🔗 Test Connection
+                </button>
+            </div>
+            
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your error...</p>
+            </div>
+            
+            <div id="results" class="results">
+                <div class="result-section">
+                    <h3>📝 Your Issue</h3>
+                    <p id="userIssue"></p>
+                </div>
+                
+                <div class="result-section">
+                    <h3>💡 Explanation</h3>
+                    <p id="explanation"></p>
+                </div>
+                
+                <div class="result-section">
+                    <h3>🔧 Resolution Steps</h3>
+                    <p id="resolutionSteps"></p>
+                </div>
+            </div>
+            
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Test connection on page load
+        window.addEventListener('load', testConnection);
+        
+        // Event listeners
+        document.getElementById('analyzeBtn').addEventListener('click', analyzeError);
+        document.getElementById('testConnectionBtn').addEventListener('click', testConnection);
+        
+        async function testConnection() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = 'connection-status status-testing';
+            statusDiv.textContent = 'Testing connection to Confluence...';
+            
+            try {
+                const response = await fetch('/test-connection');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    statusDiv.className = 'connection-status status-success';
+                    statusDiv.textContent = `✅ ${result.message}`;
+                } else {
+                    statusDiv.className = 'connection-status status-error';
+                    statusDiv.textContent = `❌ ${result.message}`;
+                }
+            } catch (error) {
+                statusDiv.className = 'connection-status status-error';
+                statusDiv.textContent = `❌ Connection failed: ${error.message}`;
+            }
+        }
+        
+        async function analyzeError() {
+            const errorInput = document.getElementById('errorInput').value.trim();
+            
+            if (!errorInput) {
+                showError('Please enter an error description or paste error logs.');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: errorInput })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                // Display results
+                document.getElementById('userIssue').textContent = result.user_issue || 'No issue description available';
+                document.getElementById('explanation').textContent = result.explanation || 'No explanation available';
+                document.getElementById('resolutionSteps').textContent = result.resolution_steps || 'No resolution steps available';
+                
+                document.getElementById('results').style.display = 'block';
+                
+                if (result.status && result.status !== 'success') {
+                    showError(`Failed to analyze error: ${result.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error parsing JSON or processing response:', error);
+                // This is the fix: Display a clear, generic error message
+                // if the error object doesn't have a specific 'message' property.
+                const errorMessage = error.message ? error.message : "An unexpected error occurred.";
+                showError(`Failed to analyze error: ${errorMessage}`);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
+    </script>
+</body>
+</html> 

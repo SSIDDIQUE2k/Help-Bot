@@ -1,0 +1,9 @@
+flask
+python-dotenv
+langchain
+langchain-community
+requests
+beautifulsoup4
+chromadb
+sentence-transformers
+flask-cors 

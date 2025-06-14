@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpBot 2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="container mx-auto p-4 max-w-3xl">
+        <header class="text-center my-8">
+            <h1 class="text-4xl font-bold text-gray-800">HelpBot 2.0</h1>
+            <p class="text-gray-600">Your local Confluence knowledge base assistant.</p>
+        </header>
+
+        <!-- Connection Tester -->
+        <div class="bg-white p-4 rounded-lg shadow-md mb-6 border">
+            <h2 class="font-semibold text-gray-700 mb-2">Confluence Connection</h2>
+            <button id="test-btn" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                Test Connection
+            </button>
+            <div id="test-result" class="mt-3 text-sm font-medium"></div>
+        </div>
+
+        <!-- Main Form -->
+        <div class="bg-white p-6 rounded-lg shadow-md border">
+            <form id="analyze-form">
+                <label for="error-text" class="block font-semibold text-gray-700 mb-2">Enter your error message or query:</label>
+                <textarea id="error-text" rows="4" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500" placeholder="e.g., Error Log #3999 or 'database connection refused'"></textarea>
+                <button type="submit" id="analyze-btn" class="mt-4 w-full px-4 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors">
+                    Get Assistance
+                </button>
+            </form>
+        </div>
+
+        <!-- Results -->
+        <div id="result-container" class="mt-6"></div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const testBtn = document.getElementById('test-btn');
+        const testResult = document.getElementById('test-result');
+        const analyzeForm = document.getElementById('analyze-form');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const errorTextArea = document.getElementById('error-text');
+        const resultContainer = document.getElementById('result-container');
+
+        // --- Connection Tester ---
+        testBtn.addEventListener('click', async () => {
+            testBtn.disabled = true;
+            testBtn.innerText = 'Testing...';
+            testResult.innerHTML = '';
+
+            try {
+                const response = await fetch('/test-connection');
+                const data = await response.json();
+                if (data.status === 'success') {
+                    testResult.innerHTML = `<div class="p-3 rounded-md bg-green-100 text-green-800">✅ ${data.message}</div>`;
+                } else {
+                    testResult.innerHTML = `<div class="p-3 rounded-md bg-red-100 text-red-800">❌ ${data.message}</div>`;
+                }
+            } catch (error) {
+                testResult.innerHTML = `<div class="p-3 rounded-md bg-red-100 text-red-800">❌ Network error. Is the server running?</div>`;
+            } finally {
+                testBtn.disabled = false;
+                testBtn.innerText = 'Test Connection';
+            }
+        });
+
+        // --- Error Analysis ---
+        analyzeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorText = errorTextArea.value.trim();
+            if (!errorText) return;
+
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerText = 'Analyzing...';
+            resultContainer.innerHTML = `<div class="text-center p-4">⏳ Searching the knowledge base...</div>`;
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ error_text: errorText })
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'An unknown error occurred.');
+                }
+                
+                const resolutionHTML = data.resolution ? `<p class="text-gray-800">${data.resolution}</p>` : `<p class="text-gray-500 italic">No specific resolution found.</p>`;
+
+                resultContainer.innerHTML = `
+                    <div class="bg-white p-6 rounded-lg shadow-md border animate-fade-in">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-bold text-gray-800 mb-1">Issue</h3>
+                            <p class="text-gray-800 bg-gray-50 p-2 rounded-md">${data.issue}</p>
+                        </div>
+                        <div class="mb-4">
+                            <h3 class="text-lg font-bold text-gray-800 mb-1">Explanation</h3>
+                            <p class="text-gray-800">${data.explanation}</p>
+                        </div>
+                        <div class="mb-4">
+                            <h3 class="text-lg font-bold text-gray-800 mb-1">Resolution</h3>
+                            ${resolutionHTML}
+                        </div>
+                        <div class="border-t pt-4 mt-4">
+                            <a href="${data.source_url}" target="_blank" class="text-blue-600 hover:underline">
+                                Source: ${data.source_title}
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                resultContainer.innerHTML = `<div class="p-4 rounded-md bg-red-100 text-red-800">❌ Error: ${error.message}</div>`;
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerText = 'Get Assistance';
+            }
+        });
+    });
+
+    // Simple fade-in animation
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+</body>
+</html> 
