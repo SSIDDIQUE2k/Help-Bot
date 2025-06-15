@@ -1,11 +1,34 @@
 import logging
 import os
 from typing import Dict, List, Optional
-from langchain_ollama import OllamaLLM
-from langchain.prompts import PromptTemplate
-from langchain.schema import BaseOutputParser
 
 logger = logging.getLogger(__name__)
+
+# Try to import Ollama dependencies, but make them optional
+try:
+    from langchain_ollama import OllamaLLM
+    from langchain.prompts import PromptTemplate
+    from langchain.schema import BaseOutputParser
+    OLLAMA_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Ollama dependencies not available: {e}")
+    OLLAMA_AVAILABLE = False
+    # Create dummy classes for when Ollama is not available
+    class OllamaLLM:
+        def __init__(self, *args, **kwargs):
+            pass
+        def invoke(self, prompt):
+            return "Ollama not available"
+    
+    class PromptTemplate:
+        def __init__(self, *args, **kwargs):
+            pass
+        def format(self, *args, **kwargs):
+            return ""
+    
+    class BaseOutputParser:
+        def parse(self, text):
+            return {}
 
 class ErrorAnalysisParser(BaseOutputParser):
     """Custom parser for error analysis responses"""
@@ -59,10 +82,18 @@ class OllamaService:
         self.base_url = base_url
         self.llm = None
         self.parser = ErrorAnalysisParser()
-        self._initialize_llm()
+        self.available = OLLAMA_AVAILABLE
+        
+        if self.available:
+            self._initialize_llm()
+        else:
+            logger.info("Ollama dependencies not available - running in basic mode")
     
     def _initialize_llm(self):
         """Initialize the Ollama LLM"""
+        if not self.available:
+            return
+            
         try:
             self.llm = OllamaLLM(
                 model=self.model_name,
@@ -74,12 +105,14 @@ class OllamaService:
         except Exception as e:
             logger.error(f"Failed to initialize Ollama: {e}")
             self.llm = None
+            self.available = False
     
     def is_available(self) -> bool:
         """Check if Ollama is available"""
+        if not self.available or not self.llm:
+            return False
+            
         try:
-            if not self.llm:
-                return False
             # Test with a simple query
             response = self.llm.invoke("Hello")
             return bool(response)

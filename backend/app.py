@@ -473,5 +473,12 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    # Use reload=True for development to automatically apply code changes
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True) 
+    # Get port from environment variable (Railway sets this)
+    port = int(os.getenv("PORT", 8000))
+    host = os.getenv("HOST", "0.0.0.0")
+    
+    # Use reload=False for production deployment
+    reload = os.getenv("ENVIRONMENT", "production") == "development"
+    
+    logger.info(f"Starting server on {host}:{port} (reload={reload})")
+    uvicorn.run("backend.app:app", host=host, port=port, reload=reload) 

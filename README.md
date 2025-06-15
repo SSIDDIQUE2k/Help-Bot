@@ -1,31 +1,47 @@
-# HelpBot - AI Error Assistant
+# 🤖 HelpBot - AI Error Assistant
 
-An intelligent error assistant that integrates with Confluence to provide instant solutions to technical issues. Now enhanced with **Ollama** for natural language processing and conversational AI responses.
+An intelligent error analysis system with semantic search capabilities, AI-enhanced responses, and a modern widget interface.
 
-## 🚀 Features
+## ✨ Features
 
-### Core Features
-- **Confluence Integration**: Automatically searches your Confluence knowledge base
-- **Intelligent Error Parsing**: Extracts structured error information from documentation
-- **Web Interface**: Clean, modern UI for easy interaction
-- **Real-time Connection Testing**: Verify Confluence connectivity
+- **🔍 Advanced Semantic Search**: Finds relevant errors from natural language descriptions
+- **🤖 AI-Enhanced Analysis**: Powered by Ollama for intelligent error categorization
+- **📚 Confluence Integration**: Seamlessly connects to your knowledge base
+- **🎯 Dual Interface**: Widget and sidebar modes for optimal user experience
+- **⚡ Real-time Processing**: Instant error analysis with severity assessment
+- **📱 Responsive Design**: Works perfectly on desktop and mobile
 
-### 🤖 AI Enhancement (New!)
-- **Natural Language Processing**: Powered by Ollama for intelligent error analysis
-- **Conversational Responses**: Get friendly, human-like explanations
-- **Error Categorization**: Automatic classification (connection, configuration, authentication, etc.)
-- **Severity Assessment**: Understand the impact level (low, medium, high)
-- **Smart Suggestions**: Related queries you might be interested in
-- **Enhanced Explanations**: Clear, step-by-step resolution instructions
+## 🚀 Quick Deploy to Railway
 
-## 🛠️ Installation
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/your-template-id)
+
+### Manual Railway Deployment
+
+1. **Fork this repository** to your GitHub account
+
+2. **Connect to Railway**:
+   - Go to [Railway](https://railway.app)
+   - Click "New Project" → "Deploy from GitHub repo"
+   - Select your forked repository
+
+3. **Configure Environment Variables** (Optional):
+   ```
+   CONFLUENCE_URL=https://your-domain.atlassian.net/wiki
+   CONFLUENCE_USERNAME=your-email@domain.com
+   CONFLUENCE_API_TOKEN=your-api-token
+   CONFLUENCE_SPACE_KEY=your-space-key
+   ```
+
+4. **Deploy**: Railway will automatically build and deploy your application
+
+## 🛠️ Local Development
 
 ### Prerequisites
-- Python 3.8+
-- Confluence account with API access
-- (Optional) Ollama for AI enhancement
 
-### Quick Setup
+- Python 3.9+
+- pip
+
+### Installation
 
 1. **Clone the repository**:
    ```bash
@@ -35,160 +51,137 @@ An intelligent error assistant that integrates with Confluence to provide instan
 
 2. **Install dependencies**:
    ```bash
-   cd backend
    pip install -r requirements.txt
    ```
 
-3. **Configure environment**:
-   Create a `.env` file in the root directory:
-   ```env
-   CONFLUENCE_URL=https://your-domain.atlassian.net/wiki
-   CONFLUENCE_USERNAME=your-email@domain.com
-   CONFLUENCE_API_TOKEN=your-api-token
-   CONFLUENCE_SPACE_KEY=YOUR_SPACE_KEY
-   ```
-
-4. **Set up Ollama (Optional but Recommended)**:
+3. **Configure environment** (optional):
    ```bash
-   python setup_ollama.py
+   cp config.env.example .env
+   # Edit .env with your Confluence credentials
    ```
-   This will guide you through installing Ollama and downloading the AI model.
 
-5. **Start the application**:
+4. **Run the application**:
    ```bash
-   cd backend
-   python app.py
+   python backend/app.py
    ```
 
-6. **Access the web interface**:
-   Open http://localhost:8000 in your browser
-
-## 🤖 Ollama Integration
-
-### Automatic Setup
-Run the setup script for guided installation:
-```bash
-python setup_ollama.py
-```
-
-### Manual Setup
-1. **Install Ollama**:
-   - macOS: `brew install ollama`
-   - Linux: `curl -fsSL https://ollama.ai/install.sh | sh`
-   - Windows: Download from https://ollama.ai/download
-
-2. **Start Ollama service**:
-   ```bash
-   ollama serve
-   ```
-
-3. **Pull a model**:
-   ```bash
-   ollama pull llama3.2
-   ```
-
-### Supported Models
-- `llama3.2` (recommended) - Fast and efficient
-- `llama3.1` - More capable but slower
-- `codellama` - Specialized for code-related errors
-
-## 📊 API Endpoints
-
-- `GET /` - Web interface
-- `POST /query` - Submit error queries
-- `GET /test-connection` - Test Confluence connection
-- `GET /health` - Health check with feature status
-- `GET /ollama-status` - Check AI enhancement status
-
-## 🎯 Usage Examples
-
-### Basic Error Query
-```
-"Getting connection timeout error when connecting to database"
-```
-
-### Specific Error Log
-```
-"Error Log 3999: AS2 connection failed"
-```
-
-### Natural Language Query
-```
-"Why is my API returning 500 errors?"
-```
+5. **Access the application**:
+   - Main UI: http://localhost:8000
+   - Widget Demo: http://localhost:8000/widget
+   - Health Check: http://localhost:8000/health
 
 ## 🔧 Configuration
 
-### Environment Variables
-- `CONFLUENCE_URL` - Your Confluence base URL
-- `CONFLUENCE_USERNAME` - Your Confluence username/email
-- `CONFLUENCE_API_TOKEN` - Your Confluence API token
-- `CONFLUENCE_SPACE_KEY` - The space to search in
+### Confluence Integration (Optional)
 
-### Ollama Configuration
-The Ollama service runs on `http://localhost:11434` by default. You can customize this in the `OllamaService` class.
+To connect to your Confluence space, set these environment variables:
+
+```env
+CONFLUENCE_URL=https://your-domain.atlassian.net/wiki
+CONFLUENCE_USERNAME=your-email@domain.com
+CONFLUENCE_API_TOKEN=your-api-token
+CONFLUENCE_SPACE_KEY=your-space-key
+```
+
+**Note**: If Confluence is not configured, the system runs in demo mode with sample data.
+
+### Ollama AI Integration (Optional)
+
+For local development with AI features:
+
+1. Install [Ollama](https://ollama.ai)
+2. Pull the model: `ollama pull llama3.2`
+3. Start Ollama service: `ollama serve`
+
+**Note**: AI features are optional and the system works without Ollama.
+
+## 📖 API Documentation
+
+### Endpoints
+
+- `GET /` - Main application interface
+- `GET /widget` - Widget demo page
+- `GET /widget.js` - Embeddable widget JavaScript
+- `POST /query` - Process error queries
+- `GET /health` - Health check and system status
+- `GET /test-connection` - Test Confluence connection
+
+### Widget Integration
+
+Embed HelpBot in any website:
+
+```html
+<script>
+  window.HELPBOT_API_URL = 'https://your-railway-app.railway.app';
+  window.HELPBOT_POSITION = 'bottom-right';
+  window.HELPBOT_DEFAULT_MODE = 'widget';
+</script>
+<script src="https://your-railway-app.railway.app/widget.js"></script>
+```
 
 ## 🏗️ Architecture
 
 ```
-HelpBot/
 ├── backend/
-│   ├── app.py                 # FastAPI main application
+│   ├── app.py                 # FastAPI application
 │   ├── helpbot/
-│   │   ├── confluence_client.py    # Confluence API integration
-│   │   ├── html_extractor.py       # Error parsing logic
-│   │   └── ollama_service.py       # AI enhancement service
-│   ├── templates/
-│   │   └── index.html         # Web interface
-│   └── requirements.txt       # Python dependencies
-├── setup_ollama.py           # Ollama setup script
-├── .env                      # Environment configuration
-└── README.md
+│   │   ├── confluence_client.py   # Confluence integration
+│   │   ├── html_extractor.py      # Content parsing
+│   │   └── ollama_service.py      # AI processing
+│   ├── static/
+│   │   └── helpbot-widget.js      # Widget JavaScript
+│   └── templates/
+│       ├── index.html             # Main UI
+│       └── widget.html            # Widget template
+├── requirements.txt           # Python dependencies
+├── Procfile                  # Railway process definition
+├── railway.json             # Railway configuration
+└── nixpacks.toml           # Build configuration
 ```
 
-## 🚦 Status Indicators
+## 🔍 How It Works
 
-The web interface shows real-time status for:
-- **Confluence Connection**: Green (connected) / Red (disconnected)
-- **AI Enhancement**: "AI Enhanced" / "Basic Mode"
-- **Error Severity**: Low / Medium / High
-- **Error Category**: Connection / Configuration / Authentication / Data / General
+1. **Query Processing**: User submits error description
+2. **Semantic Analysis**: Advanced keyword extraction and error categorization
+3. **Knowledge Search**: Multi-strategy search (exact match → keywords → fallback)
+4. **Content Extraction**: Structured parsing of documentation
+5. **AI Enhancement**: Optional AI analysis for categorization and responses
+6. **Response Generation**: Formatted results with explanations and solutions
+
+## 🎯 Use Cases
+
+- **Technical Support**: Instant error resolution from knowledge base
+- **Developer Tools**: Embedded help widget for applications
+- **Documentation Search**: Semantic search through technical docs
+- **Error Tracking**: Categorized error analysis and reporting
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test with both basic and AI-enhanced modes
-5. Submit a pull request
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit changes: `git commit -am 'Add feature'`
+4. Push to branch: `git push origin feature-name`
+5. Submit a Pull Request
 
-## 📝 License
+## 📄 License
 
-This project is open source and available under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Troubleshooting
+## 🆘 Support
 
-### Common Issues
+- **Issues**: [GitHub Issues](https://github.com/SSIDDIQUE2k/Help-Bot/issues)
+- **Documentation**: Check the `/health` endpoint for system status
+- **Demo**: Try the live widget on the main page
 
-**Ollama not working?**
-- Ensure Ollama service is running: `ollama serve`
-- Check if model is downloaded: `ollama list`
-- Verify connection: `curl http://localhost:11434/api/version`
+## 🚀 Deployment Status
 
-**Confluence connection failed?**
-- Verify your API token is correct
-- Check if your Confluence URL includes `/wiki`
-- Ensure your user has access to the specified space
+- ✅ Railway-ready with automatic builds
+- ✅ Environment variable configuration
+- ✅ Health checks and monitoring
+- ✅ Scalable FastAPI backend
+- ✅ Static file serving
+- ✅ CORS enabled for widget embedding
 
-**No error entries found?**
-- Check if your Confluence page has the expected format
-- Verify the space key is correct
-- Try the universal parser fallback
+---
 
-## 🔮 Future Enhancements
-
-- [ ] Multi-language support
-- [ ] Custom model fine-tuning
-- [ ] Integration with other knowledge bases
-- [ ] Advanced error analytics
-- [ ] Team collaboration features
+**Built with ❤️ using FastAPI, Railway, and modern web technologies**
