@@ -11,29 +11,6 @@ An intelligent error analysis system with semantic search capabilities, AI-enhan
 - **⚡ Real-time Processing**: Instant error analysis with severity assessment
 - **📱 Responsive Design**: Works perfectly on desktop and mobile
 
-## 🚀 Quick Deploy to Railway
-
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/your-template-id)
-
-### Manual Railway Deployment
-
-1. **Fork this repository** to your GitHub account
-
-2. **Connect to Railway**:
-   - Go to [Railway](https://railway.app)
-   - Click "New Project" → "Deploy from GitHub repo"
-   - Select your forked repository
-
-3. **Configure Environment Variables** (Optional):
-   ```
-   CONFLUENCE_URL=https://your-domain.atlassian.net/wiki
-   CONFLUENCE_USERNAME=your-email@domain.com
-   CONFLUENCE_API_TOKEN=your-api-token
-   CONFLUENCE_SPACE_KEY=your-space-key
-   ```
-
-4. **Deploy**: Railway will automatically build and deploy your application
-
 ## 🛠️ Local Development
 
 ### Prerequisites
@@ -112,11 +89,11 @@ Embed HelpBot in any website:
 
 ```html
 <script>
-  window.HELPBOT_API_URL = 'https://your-railway-app.railway.app';
+  window.HELPBOT_API_URL = 'http://localhost:8000';
   window.HELPBOT_POSITION = 'bottom-right';
   window.HELPBOT_DEFAULT_MODE = 'widget';
 </script>
-<script src="https://your-railway-app.railway.app/widget.js"></script>
+<script src="http://localhost:8000/widget.js"></script>
 ```
 
 ## 🏗️ Architecture
@@ -133,10 +110,7 @@ Embed HelpBot in any website:
 │   └── templates/
 │       ├── index.html             # Main UI
 │       └── widget.html            # Widget template
-├── requirements.txt           # Python dependencies
-├── Procfile                  # Railway process definition
-├── railway.json             # Railway configuration
-└── nixpacks.toml           # Build configuration
+└── requirements.txt           # Python dependencies
 ```
 
 ## 🔍 How It Works
@@ -171,17 +145,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/SSIDDIQUE2k/Help-Bot/issues)
 - **Documentation**: Check the `/health` endpoint for system status
-- **Demo**: Try the live widget on the main page
-
-## 🚀 Deployment Status
-
-- ✅ Railway-ready with automatic builds
-- ✅ Environment variable configuration
-- ✅ Health checks and monitoring
-- ✅ Scalable FastAPI backend
-- ✅ Static file serving
-- ✅ CORS enabled for widget embedding
+- **Demo**: Try the widget on the main page
 
 ---
 
-**Built with ❤️ using FastAPI, Railway, and modern web technologies**
+**Built with ❤️ using FastAPI and modern web technologies**
