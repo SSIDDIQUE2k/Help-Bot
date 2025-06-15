@@ -11,6 +11,27 @@ An intelligent error analysis system with semantic search capabilities, AI-enhan
 - **⚡ Real-time Processing**: Instant error analysis with severity assessment
 - **📱 Responsive Design**: Works perfectly on desktop and mobile
 
+## 🚀 Deploy to Railway
+
+### Quick Deploy
+1. Fork this repository to your GitHub account
+2. Go to [Railway](https://railway.app) and sign up/login
+3. Click "New Project" → "Deploy from GitHub repo"
+4. Select your forked repository
+5. Railway will automatically detect and deploy your Python app
+6. Your app will be live in 2-3 minutes!
+
+### Environment Variables (Optional)
+Add these in Railway dashboard under Variables:
+```
+CONFLUENCE_URL=https://your-domain.atlassian.net/wiki
+CONFLUENCE_USERNAME=your-email@domain.com
+CONFLUENCE_API_TOKEN=your-api-token
+CONFLUENCE_SPACE_KEY=your-space-key
+```
+
+**Note**: App works perfectly in demo mode without these variables.
+
 ## 🛠️ Local Development
 
 ### Prerequisites
@@ -89,11 +110,11 @@ Embed HelpBot in any website:
 
 ```html
 <script>
-  window.HELPBOT_API_URL = 'http://localhost:8000';
+  window.HELPBOT_API_URL = 'https://your-railway-app.railway.app';
   window.HELPBOT_POSITION = 'bottom-right';
   window.HELPBOT_DEFAULT_MODE = 'widget';
 </script>
-<script src="http://localhost:8000/widget.js"></script>
+<script src="https://your-railway-app.railway.app/widget.js"></script>
 ```
 
 ## 🏗️ Architecture
@@ -110,7 +131,9 @@ Embed HelpBot in any website:
 │   └── templates/
 │       ├── index.html             # Main UI
 │       └── widget.html            # Widget template
-└── requirements.txt           # Python dependencies
+├── requirements.txt           # Python dependencies
+├── railway.toml              # Railway configuration
+└── nixpacks.toml            # Build configuration
 ```
 
 ## 🔍 How It Works
@@ -147,6 +170,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Documentation**: Check the `/health` endpoint for system status
 - **Demo**: Try the widget on the main page
 
+## 🚀 Deployment Status
+
+- ✅ Railway-ready with automatic builds
+- ✅ Environment variable configuration
+- ✅ Health checks and monitoring
+- ✅ Scalable FastAPI backend
+- ✅ Demo mode with sample data
+
 ---
 
-**Built with ❤️ using FastAPI and modern web technologies**
+**Built with ❤️ using FastAPI and Railway**
