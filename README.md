@@ -22,8 +22,35 @@ Choose your preferred platform:
 | **Fly.io** | ✅ | Medium | [Deploy to Fly.io](https://fly.io) |
 | **Heroku** | ❌ | Easy | [Deploy to Heroku](https://heroku.com) |
 | **Vercel** | ✅ | Medium | [Deploy to Vercel](https://vercel.com) |
+| **GitHub Pages** | ✅ | Easy | [Static Demo Only](https://pages.github.com) |
 
 **📖 [Full Deployment Guide](DEPLOYMENT.md)** - Detailed instructions for all platforms
+
+## 🐙 GitHub Deployment Options
+
+### 1. GitHub Pages (Static Demo)
+- ✅ **Free hosting** for static demo
+- ✅ **Automatic deployment** via GitHub Actions
+- ❌ **Limited functionality** (no Python backend)
+- 🌐 **Demo URL**: `https://yourusername.github.io/Help-Bot`
+
+**To enable GitHub Pages:**
+1. Go to your repository Settings
+2. Navigate to "Pages" section
+3. Select "GitHub Actions" as source
+4. The workflow will auto-deploy on push to main
+
+### 2. GitHub Actions CI/CD
+- ✅ **Automated testing** on every push
+- ✅ **Multi-platform deployment** pipeline
+- ✅ **Quality assurance** before deployment
+- 🔄 **Auto-deploy** to Render, Railway, Fly.io
+
+### 3. GitHub Codespaces
+- ✅ **Cloud development** environment
+- ✅ **Full Python support** for testing
+- ✅ **Pre-configured** development setup
+- 💻 **Access**: Click "Code" → "Codespaces" → "Create"
 
 ## 🛠️ Local Development
 
@@ -124,6 +151,9 @@ Embed HelpBot in any website:
 │   └── templates/
 │       ├── index.html             # Main UI
 │       └── widget.html            # Widget template
+├── .github/workflows/         # GitHub Actions CI/CD
+│   ├── deploy.yml            # Multi-platform deployment
+│   └── pages.yml             # GitHub Pages deployment
 ├── requirements.txt           # Python dependencies
 ├── Dockerfile                # Docker deployment
 ├── render.yaml               # Render configuration
@@ -170,7 +200,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🚀 Deployment Status
 
-- ✅ **Multi-platform ready** - Deploy to 6+ platforms
+- ✅ **Multi-platform ready** - Deploy to 7+ platforms
+- ✅ **GitHub Actions CI/CD** - Automated testing and deployment
+- ✅ **GitHub Pages demo** - Static demo hosting
 - ✅ **Docker support** - Container-based deployment
 - ✅ **Health monitoring** - Built-in health checks
 - ✅ **Environment variables** - Configurable for any platform
@@ -178,4 +210,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ using FastAPI and deployable everywhere**
+**Built with ❤️ using FastAPI and deployable everywhere including GitHub**

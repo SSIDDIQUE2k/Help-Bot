@@ -1,0 +1,93 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Create static demo
+        run: |
+          mkdir -p _site
+          cp backend/templates/index.html _site/
+          cp backend/templates/widget.html _site/widget.html
+          cp backend/static/helpbot-widget.js _site/widget.js
+          
+          # Create a simple demo page
+          cat > _site/demo.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>HelpBot Demo - GitHub Pages</title>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <style>
+                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 40px; }
+                  .container { max-width: 800px; margin: 0 auto; }
+                  .demo-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                  .btn { background: #667eea; color: white; padding: 12px 24px; border: none; border-radius: 6px; text-decoration: none; display: inline-block; }
+                  .btn:hover { background: #5a6fd8; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>🤖 HelpBot - AI Error Assistant</h1>
+                  <p>This is a static demo hosted on GitHub Pages. For the full interactive experience, deploy to a platform that supports Python backends.</p>
+                  
+                  <div class="demo-box">
+                      <h3>📖 Documentation</h3>
+                      <p>View the static templates and widget code:</p>
+                      <a href="index.html" class="btn">Main Interface</a>
+                      <a href="widget.html" class="btn">Widget Template</a>
+                      <a href="widget.js" class="btn">Widget JavaScript</a>
+                  </div>
+                  
+                  <div class="demo-box">
+                      <h3>🚀 Deploy for Full Functionality</h3>
+                      <p>To use HelpBot with semantic search and AI features, deploy to:</p>
+                      <ul>
+                          <li><strong>Render</strong> - Easy Python deployment</li>
+                          <li><strong>Railway</strong> - Modern platform</li>
+                          <li><strong>Vercel</strong> - Serverless deployment</li>
+                          <li><strong>Fly.io</strong> - Global edge deployment</li>
+                      </ul>
+                      <a href="https://github.com/SSIDDIQUE2k/Help-Bot" class="btn">View on GitHub</a>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+          
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 
