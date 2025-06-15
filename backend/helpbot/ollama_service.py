@@ -138,8 +138,10 @@ Category:
             
             # Preserve original Confluence data and add AI analysis
             result = {
-                **confluence_data,  # Keep all original data
                 'user_issue': user_query,
+                'explanation': confluence_data.get('explanation', 'No explanation available'),
+                'resolution_steps': confluence_data.get('resolution', 'No resolution steps available'),
+                'resolution': confluence_data.get('resolution', 'No resolution steps available'),
                 'severity': enhanced_data.get('severity', 'medium'),
                 'category': enhanced_data.get('category', 'general'),
                 'enhanced': True,

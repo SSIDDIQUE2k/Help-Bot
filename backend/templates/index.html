@@ -10,436 +10,456 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            line-height: 1.4;
+            background: #f8f9fa;
+            color: #374151;
             min-height: 100vh;
-            padding: 20px;
         }
         
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        /* Header Section */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
             overflow: hidden;
         }
         
-        .header {
-            background: #2c3e50;
-            color: white;
-            padding: 30px;
-            text-align: center;
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.1;
         }
         
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
         }
         
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1em;
+        .hero-title {
+            font-size: 3em;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
-        .content {
-            padding: 40px;
-        }
-        
-        .connection-status {
+        .hero-subtitle {
+            font-size: 1.3em;
+            opacity: 0.95;
             margin-bottom: 30px;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 500;
+            font-weight: 400;
         }
         
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .status-testing {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-        
-        .input-group {
-            margin-bottom: 30px;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-        
-        .input-group textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            resize: vertical;
-            min-height: 120px;
-            transition: border-color 0.3s;
-        }
-        
-        .input-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            flex: 1;
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .results {
-            display: none;
-            margin-top: 30px;
-        }
-        
-        .result-section {
-            margin-bottom: 25px;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            background: #f8f9fa;
-        }
-        
-        .result-section h3 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-        }
-        
-        .result-section p {
-            line-height: 1.6;
-            color: #495057;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            display: none;
-        }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .badge {
+        .hero-badge {
             display: inline-block;
-            padding: 4px 8px;
-            margin: 2px 4px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            font-weight: bold;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
-        .severity-low { background: #d4edda; color: #155724; }
-        .severity-medium { background: #fff3cd; color: #856404; }
-        .severity-high { background: #f8d7da; color: #721c24; }
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: -40px auto 0;
+            padding: 0 20px 60px;
+            position: relative;
+            z-index: 2;
+        }
         
-        .category-connection { background: #cce5ff; color: #004085; }
-        .category-configuration { background: #e2e3e5; color: #383d41; }
-        .category-authentication { background: #ffeaa7; color: #6c757d; }
-        .category-data { background: #d1ecf1; color: #0c5460; }
-        .category-general { background: #f8f9fa; color: #495057; }
+        /* Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
         
-        .enhanced-true { background: #d4edda; color: #155724; }
-        .enhanced-false { background: #f8d7da; color: #721c24; }
+        .feature-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e1e5e9;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
         
-        .suggestion-item {
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .feature-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+        
+        .feature-description {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* Widget Demo Section */
+        .widget-demo {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e1e5e9;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .widget-demo h2 {
+            color: #374151;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .widget-demo p {
+            color: #6b7280;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .demo-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .mode-toggle-demo {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
             background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 10px;
-            margin: 5px 0;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            color: #374151;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
         
-        .suggestion-item:hover {
+        .mode-toggle-demo:hover {
             background: #e9ecef;
+            transform: translateY(-1px);
+        }
+        
+        .widget-preview {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .floating-button-demo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* Status Section */
+        .status-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e1e5e9;
+            margin-bottom: 30px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .status-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .status-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .status-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .status-success { color: #10b981; }
+        .status-warning { color: #f59e0b; }
+        .status-error { color: #ef4444; }
+        
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+        }
+        
+        .cta-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .cta-title {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .cta-description {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+        
+        .cta-arrow {
+            font-size: 2em;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.2em;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1em;
+            }
+            
+            .main-content {
+                margin-top: -20px;
+                padding: 0 15px 40px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .feature-card,
+            .widget-demo,
+            .status-section,
+            .cta-section {
+                padding: 20px;
+            }
+            
+            .demo-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🤖 HelpBot</h1>
-            <p>AI Error Assistant with Confluence Integration</p>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">🤖 HelpBot</h1>
+            <p class="hero-subtitle">AI-Powered Error Assistant with Smart Widget & Sidebar Modes</p>
+            <div class="hero-badge">✨ Enhanced with Ollama AI</div>
         </div>
-        
-        <div class="content">
-            <div id="connectionStatus" class="connection-status status-testing">
-                Testing connection to Confluence...
-            </div>
-            
-            <div class="input-group">
-                <label for="errorInput">Describe your error or paste error logs:</label>
-                <textarea 
-                    id="errorInput" 
-                    placeholder="Example: Getting 'Connection timeout' error when trying to connect to database..."
-                ></textarea>
-            </div>
-            
-            <div class="button-group">
-                <button id="analyzeBtn" class="btn btn-primary">
-                    🔍 Analyze Error
-                </button>
-                <button id="testConnectionBtn" class="btn btn-secondary">
-                    🔗 Test Connection
-                </button>
-            </div>
-            
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <p>Analyzing your error...</p>
-            </div>
-            
-            <div id="results" class="results">
-                <div class="result-section">
-                    <h3>📝 Your Issue</h3>
-                    <p id="userIssue"></p>
-                    <div id="metaInfo" style="display: none; margin-top: 10px; font-size: 0.9em; color: #666;">
-                        <span id="severity" class="badge"></span>
-                        <span id="category" class="badge"></span>
-                        <span id="enhanced" class="badge"></span>
-                    </div>
-                </div>
-                
-                <div id="conversationalSection" class="result-section" style="display: none;">
-                    <h3>🤖 AI Assistant</h3>
-                    <p id="conversationalResponse" style="background: #f0f8ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;"></p>
-                </div>
-                
-                <div class="result-section">
-                    <h3>💡 Explanation</h3>
-                    <p id="explanation"></p>
-                </div>
-                
-                <div class="result-section">
-                    <h3>🔧 Resolution Steps</h3>
-                    <p id="resolutionSteps"></p>
-                </div>
-                
-                <div id="suggestionsSection" class="result-section" style="display: none;">
-                    <h3>💭 Related Queries</h3>
-                    <div id="suggestions"></div>
-                </div>
-            </div>
-            
-            <div id="errorMessage" class="error-message" style="display: none;"></div>
-        </div>
-    </div>
+    </section>
 
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="feature-icon">🔄</span>
+                <h3 class="feature-title">Dual Mode Interface</h3>
+                <p class="feature-description">Switch between compact widget mode and full sidebar mode with a single click for optimal user experience</p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">🤖</span>
+                <h3 class="feature-title">AI-Enhanced Analysis</h3>
+                <p class="feature-description">Powered by Ollama AI for intelligent error categorization, severity assessment, and conversational responses</p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">📚</span>
+                <h3 class="feature-title">Knowledge Base Integration</h3>
+                <p class="feature-description">Seamlessly connects to your Confluence space for comprehensive error documentation and solutions</p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">⚡</span>
+                <h3 class="feature-title">Semantic Search</h3>
+                <p class="feature-description">Advanced semantic matching finds relevant errors even when described in natural language</p>
+            </div>
+        </div>
+
+        <!-- Widget Demo Section -->
+        <div class="widget-demo">
+            <h2>🎯 Interactive Widget Demo</h2>
+            <p>Experience HelpBot's floating widget interface - look for the button in the bottom-right corner!</p>
+            
+            <div class="widget-preview">
+                <div class="floating-button-demo">🤖</div>
+            </div>
+            
+            <div class="demo-buttons">
+                <span class="mode-toggle-demo">📱 Widget Mode</span>
+                <span class="mode-toggle-demo">🗂️ Sidebar Mode</span>
+            </div>
+            
+            <p style="font-size: 12px; color: #6b7280; margin-top: 15px;">
+                Click the floating 🤖 button to open HelpBot, then use the mode toggle to switch between compact and full-screen views.
+            </p>
+        </div>
+
+        <!-- Status Section -->
+        <div class="status-section">
+            <h2 style="text-align: center; margin-bottom: 25px; color: #374151; font-weight: 600;">System Status</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-icon status-success">✅</span>
+                    <div class="status-label">API Server</div>
+                    <div class="status-value">Online</div>
+                </div>
+                
+                <div class="status-item">
+                    <span class="status-icon status-success">🤖</span>
+                    <div class="status-label">AI Engine</div>
+                    <div class="status-value">Ollama Ready</div>
+                </div>
+                
+                <div class="status-item">
+                    <span class="status-icon status-success">📚</span>
+                    <div class="status-label">Knowledge Base</div>
+                    <div class="status-value">Connected</div>
+                </div>
+                
+                <div class="status-item">
+                    <span class="status-icon status-success">🔍</span>
+                    <div class="status-label">Search Engine</div>
+                    <div class="status-value">Enhanced</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to Get Help?</h2>
+                <p class="cta-description">Click the floating widget button to start analyzing your errors with AI assistance!</p>
+                <div class="cta-arrow">👇</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- HelpBot Widget Configuration -->
     <script>
-        // Test connection on page load
-        window.addEventListener('load', testConnection);
-        
-        // Event listeners
-        document.getElementById('analyzeBtn').addEventListener('click', analyzeError);
-        document.getElementById('testConnectionBtn').addEventListener('click', testConnection);
-        
-        async function testConnection() {
-            const statusDiv = document.getElementById('connectionStatus');
-            statusDiv.className = 'connection-status status-testing';
-            statusDiv.textContent = 'Testing connection to Confluence...';
-            
-            try {
-                const response = await fetch('/test-connection');
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    statusDiv.className = 'connection-status status-success';
-                    statusDiv.textContent = `✅ ${result.message}`;
-                } else {
-                    statusDiv.className = 'connection-status status-error';
-                    statusDiv.textContent = `❌ ${result.message}`;
-                }
-            } catch (error) {
-                statusDiv.className = 'connection-status status-error';
-                statusDiv.textContent = `❌ Connection failed: ${error.message}`;
-            }
-        }
-        
-        async function analyzeError() {
-            const errorInput = document.getElementById('errorInput').value.trim();
-            
-            if (!errorInput) {
-                showError('Please enter an error description or paste error logs.');
-                return;
-            }
-            
-            // Show loading
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'none';
-            document.getElementById('analyzeBtn').disabled = true;
-            
-            try {
-                const response = await fetch('/query', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ query: errorInput })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                
-                // Display results
-                document.getElementById('userIssue').textContent = result.user_issue || 'No issue description available';
-                document.getElementById('explanation').textContent = result.explanation || 'No explanation available';
-                document.getElementById('resolutionSteps').textContent = result.resolution_steps || 'No resolution steps available';
-                
-                // Display meta information
-                if (result.severity || result.category || result.enhanced !== undefined) {
-                    const metaInfo = document.getElementById('metaInfo');
-                    const severitySpan = document.getElementById('severity');
-                    const categorySpan = document.getElementById('category');
-                    const enhancedSpan = document.getElementById('enhanced');
-                    
-                    if (result.severity) {
-                        severitySpan.textContent = `Severity: ${result.severity.toUpperCase()}`;
-                        severitySpan.className = `badge severity-${result.severity}`;
-                    }
-                    
-                    if (result.category) {
-                        categorySpan.textContent = `Category: ${result.category}`;
-                        categorySpan.className = `badge category-${result.category}`;
-                    }
-                    
-                    if (result.enhanced !== undefined) {
-                        enhancedSpan.textContent = result.enhanced ? 'AI Enhanced' : 'Basic Mode';
-                        enhancedSpan.className = `badge enhanced-${result.enhanced}`;
-                    }
-                    
-                    metaInfo.style.display = 'block';
-                }
-                
-                // Display conversational response
-                if (result.conversational_response) {
-                    document.getElementById('conversationalResponse').textContent = result.conversational_response;
-                    document.getElementById('conversationalSection').style.display = 'block';
-                }
-                
-                // Display suggestions
-                if (result.suggestions && result.suggestions.length > 0) {
-                    const suggestionsDiv = document.getElementById('suggestions');
-                    suggestionsDiv.innerHTML = '';
-                    
-                    result.suggestions.forEach(suggestion => {
-                        const suggestionItem = document.createElement('div');
-                        suggestionItem.className = 'suggestion-item';
-                        suggestionItem.textContent = suggestion;
-                        suggestionItem.onclick = () => {
-                            document.getElementById('errorInput').value = suggestion;
-                        };
-                        suggestionsDiv.appendChild(suggestionItem);
-                    });
-                    
-                    document.getElementById('suggestionsSection').style.display = 'block';
-                }
-                
-                document.getElementById('results').style.display = 'block';
-                
-                if (result.status && result.status !== 'success') {
-                    showError(`Failed to analyze error: ${result.message || 'Unknown error'}`);
-                }
-            } catch (error) {
-                console.error('Error parsing JSON or processing response:', error);
-                // This is the fix: Display a clear, generic error message
-                // if the error object doesn't have a specific 'message' property.
-                const errorMessage = error.message ? error.message : "An unexpected error occurred.";
-                showError(`Failed to analyze error: ${errorMessage}`);
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('analyzeBtn').disabled = false;
-            }
-        }
-        
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            document.getElementById('results').style.display = 'none';
-        }
+        // Configure HelpBot widget for production use
+        window.HELPBOT_API_URL = window.location.origin; // Use current domain
+        window.HELPBOT_POSITION = 'bottom-right';
+        window.HELPBOT_DEFAULT_MODE = 'widget'; // Start in widget mode
     </script>
+    
+    <!-- Load HelpBot Widget -->
+    <script src="/widget.js"></script>
 </body>
 </html> 

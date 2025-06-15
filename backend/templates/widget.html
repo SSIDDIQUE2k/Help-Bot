@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpBot Widget</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Widget Container */
+        .helpbot-widget {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 10000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Floating Button */
+        .helpbot-toggle {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 24px;
+        }
+
+        .helpbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .helpbot-toggle.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        /* Side Panel */
+        .helpbot-panel {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 400px;
+            max-height: 600px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            transform: translateX(420px);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+            border: 1px solid #e1e5e9;
+        }
+
+        .helpbot-panel.open {
+            transform: translateX(0);
+        }
+
+        /* Panel Header */
+        .helpbot-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .helpbot-header h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .helpbot-header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            padding: 8px 12px;
+            margin: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-testing {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        /* Input Section */
+        .input-section {
+            padding: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .input-group textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+            font-size: 11px;
+            padding: 6px 12px;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results */
+        .results {
+            display: none;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 0 20px 20px;
+        }
+
+        .result-section {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-section h4 {
+            font-size: 13px;
+            color: #374151;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .result-section p {
+            font-size: 12px;
+            color: #6b7280;
+            line-height: 1.4;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 2px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .severity-low { background: #d4edda; color: #155724; }
+        .severity-medium { background: #fff3cd; color: #856404; }
+        .severity-high { background: #f8d7da; color: #721c24; }
+        
+        .category-connection { background: #cce5ff; color: #004085; }
+        .category-configuration { background: #e2e3e5; color: #383d41; }
+        .category-authentication { background: #ffeaa7; color: #6c757d; }
+        .category-data { background: #d1ecf1; color: #0c5460; }
+        .category-general { background: #f8f9fa; color: #495057; }
+        
+        .enhanced-true { background: #d4edda; color: #155724; }
+        .enhanced-false { background: #f8d7da; color: #721c24; }
+
+        /* AI Assistant */
+        .ai-assistant {
+            background: #f0f8ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .ai-assistant h4 {
+            color: #0066cc;
+            margin-bottom: 8px;
+        }
+
+        .ai-assistant p {
+            font-size: 12px;
+            color: #0066cc;
+            line-height: 1.4;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        /* Suggestions */
+        .suggestion-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 8px;
+            margin: 4px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 11px;
+        }
+
+        .suggestion-item:hover {
+            background: #e9ecef;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 20px;
+            border: 1px solid #f5c6cb;
+            font-size: 12px;
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .helpbot-panel {
+                width: calc(100vw - 40px);
+                right: -10px;
+                transform: translateX(calc(100vw - 20px));
+            }
+            
+            .helpbot-panel.open {
+                transform: translateX(0);
+            }
+        }
+
+        /* Scrollbar */
+        .results::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .results::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 2px;
+        }
+
+        .results::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 2px;
+        }
+
+        .results::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <div class="helpbot-widget">
+        <!-- Floating Toggle Button -->
+        <button class="helpbot-toggle" id="helpbotToggle">
+            🤖
+        </button>
+
+        <!-- Side Panel -->
+        <div class="helpbot-panel" id="helpbotPanel">
+            <!-- Header -->
+            <div class="helpbot-header">
+                <h2>🤖 HelpBot</h2>
+                <p>AI Error Assistant</p>
+            </div>
+
+            <!-- Connection Status -->
+            <div id="connectionStatus" class="connection-status status-testing">
+                Testing connection...
+            </div>
+
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="errorInput">Describe your error:</label>
+                    <textarea 
+                        id="errorInput" 
+                        placeholder="Example: Error Log 1, connection timeout, database error..."
+                    ></textarea>
+                </div>
+
+                <button id="analyzeBtn" class="btn btn-primary">
+                    🔍 Analyze Error
+                </button>
+                
+                <button id="testConnectionBtn" class="btn btn-secondary">
+                    🔗 Test Connection
+                </button>
+            </div>
+
+            <!-- Loading -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your error...</p>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="results">
+                <div class="result-section">
+                    <h4>📝 Your Issue</h4>
+                    <p id="userIssue"></p>
+                    <div id="metaInfo" style="display: none; margin-top: 8px;">
+                        <span id="severity" class="badge"></span>
+                        <span id="category" class="badge"></span>
+                        <span id="enhanced" class="badge"></span>
+                    </div>
+                </div>
+                
+                <div id="conversationalSection" class="ai-assistant" style="display: none;">
+                    <h4>🤖 AI Assistant</h4>
+                    <p id="conversationalResponse"></p>
+                </div>
+                
+                <div class="result-section">
+                    <h4>💡 Explanation</h4>
+                    <p id="explanation"></p>
+                </div>
+                
+                <div class="result-section">
+                    <h4>🔧 Resolution Steps</h4>
+                    <p id="resolutionSteps"></p>
+                </div>
+                
+                <div id="suggestionsSection" class="result-section" style="display: none;">
+                    <h4>💭 Related Queries</h4>
+                    <div id="suggestions"></div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="error-message"></div>
+        </div>
+    </div>
+
+    <script>
+        // Widget functionality
+        const toggle = document.getElementById('helpbotToggle');
+        const panel = document.getElementById('helpbotPanel');
+        let isOpen = false;
+
+        toggle.addEventListener('click', () => {
+            isOpen = !isOpen;
+            panel.classList.toggle('open', isOpen);
+            toggle.classList.toggle('active', isOpen);
+            toggle.textContent = isOpen ? '✕' : '🤖';
+            
+            if (isOpen && !connectionTested) {
+                testConnection();
+                connectionTested = true;
+            }
+        });
+
+        // Close panel when clicking outside
+        document.addEventListener('click', (e) => {
+            if (isOpen && !panel.contains(e.target) && !toggle.contains(e.target)) {
+                isOpen = false;
+                panel.classList.remove('open');
+                toggle.classList.remove('active');
+                toggle.textContent = '🤖';
+            }
+        });
+
+        // Prevent panel clicks from closing
+        panel.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // HelpBot functionality
+        let connectionTested = false;
+        
+        document.getElementById('analyzeBtn').addEventListener('click', analyzeError);
+        document.getElementById('testConnectionBtn').addEventListener('click', testConnection);
+        
+        // Enter key support
+        document.getElementById('errorInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                analyzeError();
+            }
+        });
+
+        async function testConnection() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = 'connection-status status-testing';
+            statusDiv.textContent = 'Testing connection...';
+            
+            try {
+                const response = await fetch('/test-connection');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    statusDiv.className = 'connection-status status-success';
+                    statusDiv.textContent = `✅ ${result.message}`;
+                } else {
+                    statusDiv.className = 'connection-status status-error';
+                    statusDiv.textContent = `❌ ${result.message}`;
+                }
+            } catch (error) {
+                statusDiv.className = 'connection-status status-error';
+                statusDiv.textContent = `❌ Connection failed`;
+            }
+        }
+        
+        async function analyzeError() {
+            const errorInput = document.getElementById('errorInput').value.trim();
+            
+            if (!errorInput) {
+                showError('Please enter an error description.');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: errorInput })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                // Display results
+                document.getElementById('userIssue').textContent = result.user_issue || 'No issue description available';
+                document.getElementById('explanation').textContent = result.explanation || 'No explanation available';
+                document.getElementById('resolutionSteps').textContent = result.resolution_steps || 'No resolution steps available';
+                
+                // Display meta information
+                if (result.severity || result.category || result.enhanced !== undefined) {
+                    const metaInfo = document.getElementById('metaInfo');
+                    const severitySpan = document.getElementById('severity');
+                    const categorySpan = document.getElementById('category');
+                    const enhancedSpan = document.getElementById('enhanced');
+                    
+                    if (result.severity) {
+                        severitySpan.textContent = result.severity.toUpperCase();
+                        severitySpan.className = `badge severity-${result.severity}`;
+                    }
+                    
+                    if (result.category) {
+                        categorySpan.textContent = result.category;
+                        categorySpan.className = `badge category-${result.category}`;
+                    }
+                    
+                    if (result.enhanced !== undefined) {
+                        enhancedSpan.textContent = result.enhanced ? 'AI Enhanced' : 'Basic';
+                        enhancedSpan.className = `badge enhanced-${result.enhanced}`;
+                    }
+                    
+                    metaInfo.style.display = 'block';
+                }
+                
+                // Display conversational response
+                if (result.conversational_response) {
+                    document.getElementById('conversationalResponse').textContent = result.conversational_response;
+                    document.getElementById('conversationalSection').style.display = 'block';
+                }
+                
+                // Display suggestions
+                if (result.suggestions && result.suggestions.length > 0) {
+                    const suggestionsDiv = document.getElementById('suggestions');
+                    suggestionsDiv.innerHTML = '';
+                    
+                    result.suggestions.forEach(suggestion => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.className = 'suggestion-item';
+                        suggestionItem.textContent = suggestion;
+                        suggestionItem.onclick = () => {
+                            document.getElementById('errorInput').value = suggestion;
+                        };
+                        suggestionsDiv.appendChild(suggestionItem);
+                    });
+                    
+                    document.getElementById('suggestionsSection').style.display = 'block';
+                }
+                
+                document.getElementById('results').style.display = 'block';
+                
+                if (result.status && result.status !== 'success') {
+                    showError(`Failed to analyze error: ${result.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Failed to analyze error: ${error.message}`);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
+    </script>
+</body>
+</html> 

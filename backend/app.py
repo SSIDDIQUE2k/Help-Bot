@@ -1,6 +1,7 @@
 # Backend application entry point 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import logging
 import os
@@ -12,13 +13,22 @@ from helpbot.html_extractor import HTMLExtractor
 from helpbot.ollama_service import OllamaService
 
 # Load environment variables from .env
-load_dotenv('../.env')
+load_dotenv('.env')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="HelpBot - AI Error Assistant")
+
+# Add CORS middleware for widget embedding
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify your domains
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Configuration
 CONFLUENCE_URL = os.getenv("CONFLUENCE_URL")
@@ -28,15 +38,136 @@ CONFLUENCE_SPACE_KEY = os.getenv("CONFLUENCE_SPACE_KEY")
 
 logger.info(f"Loaded config - URL: {CONFLUENCE_URL}, User: {CONFLUENCE_USERNAME}, Space: {CONFLUENCE_SPACE_KEY}")
 
-# Initialize clients
-confluence_client = ConfluenceClient(
-    base_url=CONFLUENCE_URL,
-    username=CONFLUENCE_USERNAME,
-    api_token=CONFLUENCE_API_TOKEN,
-    space_key=CONFLUENCE_SPACE_KEY
-)
+# Initialize clients with error handling
+confluence_client = None
+try:
+    if CONFLUENCE_URL and CONFLUENCE_USERNAME and CONFLUENCE_API_TOKEN and CONFLUENCE_SPACE_KEY:
+        confluence_client = ConfluenceClient(
+            base_url=CONFLUENCE_URL,
+            username=CONFLUENCE_USERNAME,
+            api_token=CONFLUENCE_API_TOKEN,
+            space_key=CONFLUENCE_SPACE_KEY
+        )
+        logger.info("Confluence client initialized successfully")
+    else:
+        logger.warning("Confluence configuration missing - running in demo mode")
+except Exception as e:
+    logger.error(f"Failed to initialize Confluence client: {e}")
+    confluence_client = None
 html_extractor = HTMLExtractor()
 ollama_service = OllamaService()
+
+# Demo data for when Confluence is not configured
+DEMO_ERROR_DATA = [
+    {
+        'id': '3999',
+        'error_code': 'Error Log #3999: AS2 Connection Timeout',
+        'explanation': 'AS2 connection timed out while attempting to establish secure communication with trading partner. This typically occurs when the remote server is unresponsive or network connectivity issues prevent the handshake from completing within the configured timeout period.',
+        'resolution': 'Check network connectivity to trading partner. Verify AS2 endpoint URL is correct. Increase timeout settings in AS2 configuration. Contact trading partner to verify their AS2 service is operational. Review firewall rules to ensure AS2 ports are open.'
+    },
+    {
+        'id': '1',
+        'error_code': 'Error Log 1: Database Connection Failed',
+        'explanation': 'Unable to establish connection to the primary database server. Connection attempts are timing out after 30 seconds.',
+        'resolution': 'Verify database server is running. Check connection string parameters. Ensure network connectivity between application and database server. Review database server logs for any errors.'
+    },
+    {
+        'id': '2',
+        'error_code': 'Error Log 2: Authentication Service Unavailable',
+        'explanation': 'The authentication service is not responding to login requests. Users cannot authenticate and access the system.',
+        'resolution': 'Restart the authentication service. Check service logs for errors. Verify LDAP/AD connectivity if using external authentication. Ensure authentication database is accessible.'
+    },
+    {
+        'id': '500',
+        'error_code': 'Error Log 500: Internal Server Error',
+        'explanation': 'An unexpected internal server error occurred while processing the request. This is typically caused by unhandled exceptions in the application code.',
+        'resolution': 'Check application logs for detailed error information. Review recent code deployments. Verify all required services and dependencies are running. Contact development team if error persists.'
+    }
+]
+
+def find_demo_match(user_query: str) -> dict:
+    """Find matching error from demo data using enhanced semantic matching"""
+    user_query_lower = user_query.lower().strip()
+    
+    # Check for exact error log number matches first
+    import re
+    exact_match = re.search(r'error log\s*#?(\d+)', user_query_lower)
+    if exact_match:
+        query_log_num = exact_match.group(1)
+        for entry in DEMO_ERROR_DATA:
+            if entry.get('id') == query_log_num:
+                return entry
+    
+    # Enhanced semantic matching
+    stop_words = {'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'this', 'that', 'is', 'are', 'was', 'were', 'have', 'has', 'had', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'cant', 'im', 'having', 'getting', 'error', 'log'}
+    query_words = set(word for word in re.findall(r'\b\w{3,}\b', user_query_lower) if word not in stop_words)
+    
+    # Define error type keywords for better categorization
+    error_types = {
+        'connection': ['connection', 'connect', 'timeout', 'network', 'socket', 'unreachable', 'refused', 'disconnected'],
+        'authentication': ['auth', 'login', 'password', 'credential', 'unauthorized', 'forbidden', 'access', 'permission'],
+        'database': ['database', 'sql', 'query', 'table', 'connection', 'db', 'mysql', 'postgres', 'oracle'],
+        'file': ['file', 'directory', 'path', 'folder', 'missing', 'not found', 'permission', 'read', 'write'],
+        'server': ['server', 'internal', '500', 'service', 'unavailable', 'down', 'maintenance'],
+        'validation': ['validation', 'invalid', 'format', 'required', 'missing', 'empty', 'null'],
+        'api': ['api', 'endpoint', 'request', 'response', 'json', 'xml', 'rest', 'soap'],
+        'configuration': ['config', 'configuration', 'setting', 'property', 'parameter', 'variable']
+    }
+    
+    best_match = None
+    highest_score = 0
+
+    for entry in DEMO_ERROR_DATA:
+        score = 0
+        title = entry.get('error_code', '').lower()
+        explanation = entry.get('explanation', '').lower()
+        resolution = entry.get('resolution', '').lower()
+        
+        # Extract words from entry content
+        title_words = set(re.findall(r'\b\w{3,}\b', title))
+        explanation_words = set(re.findall(r'\b\w{3,}\b', explanation))
+        resolution_words = set(re.findall(r'\b\w{3,}\b', resolution))
+        
+        # Basic keyword matching (weighted by importance)
+        score += len(query_words.intersection(title_words)) * 5
+        score += len(query_words.intersection(explanation_words)) * 3
+        score += len(query_words.intersection(resolution_words)) * 1
+        
+        # Error type matching
+        query_error_types = set()
+        entry_error_types = set()
+        
+        for error_type, keywords in error_types.items():
+            if any(keyword in user_query_lower for keyword in keywords):
+                query_error_types.add(error_type)
+            if any(keyword in title or keyword in explanation for keyword in keywords):
+                entry_error_types.add(error_type)
+        
+        # Boost score for matching error types
+        common_types = query_error_types.intersection(entry_error_types)
+        score += len(common_types) * 4
+        
+        # Fuzzy matching for common error patterns
+        fuzzy_patterns = [
+            (r'timeout|time.*out', r'timeout|time.*out', 3),
+            (r'connection.*failed|failed.*connection', r'connection.*failed|failed.*connection', 3),
+            (r'not.*found|missing|does.*not.*exist', r'not.*found|missing|does.*not.*exist', 3),
+            (r'unauthorized|access.*denied|permission.*denied', r'unauthorized|access.*denied|permission.*denied', 3),
+            (r'internal.*server.*error|500.*error', r'internal.*server.*error|500.*error', 3),
+            (r'invalid.*format|format.*invalid', r'invalid.*format|format.*invalid', 2),
+            (r'database.*error|sql.*error', r'database.*error|sql.*error', 3),
+            (r'network.*error|network.*issue', r'network.*error|network.*issue', 3)
+        ]
+        
+        for query_pattern, entry_pattern, boost in fuzzy_patterns:
+            if re.search(query_pattern, user_query_lower) and re.search(entry_pattern, title + ' ' + explanation):
+                score += boost
+        
+        if score > highest_score:
+            highest_score = score
+            best_match = entry
+
+    return best_match if highest_score > 0 else DEMO_ERROR_DATA[0]
 
 class QueryRequest(BaseModel):
     query: str
@@ -57,16 +188,45 @@ class ErrorResponse(BaseModel):
 async def read_root():
     """Serve the main HTML page"""
     try:
-        with open("templates/index.html", "r") as f:
+        with open("backend/templates/index.html", "r") as f:
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
         logger.error("Frontend template 'templates/index.html' not found.")
         raise HTTPException(status_code=500, detail="UI template file not found on server.")
 
+@app.get("/widget", response_class=HTMLResponse)
+async def read_widget():
+    """Serve the widget version of HelpBot"""
+    try:
+        with open("backend/templates/widget.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        logger.error("Widget template 'templates/widget.html' not found.")
+        raise HTTPException(status_code=500, detail="Widget template file not found on server.")
+
+@app.get("/widget.js")
+async def get_widget_js():
+    """Serve the embeddable widget JavaScript file"""
+    try:
+        with open("backend/static/helpbot-widget.js", "r") as f:
+            content = f.read()
+        return HTMLResponse(content=content, media_type="application/javascript")
+    except FileNotFoundError:
+        logger.error("Widget JavaScript file 'static/helpbot-widget.js' not found.")
+        raise HTTPException(status_code=500, detail="Widget JavaScript file not found on server.")
+
+
+
 @app.get("/test-connection")
 async def test_connection():
     """Test connection to Confluence and return detailed status."""
     try:
+        if not confluence_client:
+            return {
+                "status": "error",
+                "message": "Confluence client not initialized - running in demo mode",
+                "confluence_configured": False
+            }
         result = confluence_client.test_connection()
         logger.info(f"Connection test result: {result}")
         return result
@@ -84,9 +244,96 @@ async def process_query(request: QueryRequest) -> ErrorResponse:
         
         logger.info(f"Processing query: '{user_query}'")
         
-        # 1. Find the most relevant page in Confluence
-        search_results = confluence_client.search_pages(user_query, limit=1)
+        # Extract error log number from query if present
+        import re
+        error_log_match = re.search(r'error log\s*#?(\d+)', user_query.lower())
+        extracted_error_num = error_log_match.group(1) if error_log_match else None
+        
+        if extracted_error_num:
+            logger.info(f"Extracted error log number: {extracted_error_num}")
+        
+        # Extract meaningful keywords for semantic search
+        def extract_search_keywords(query: str) -> str:
+            """Extract meaningful keywords from user query for better search results"""
+            query_lower = query.lower().strip()
+            
+            # Remove common stop words and focus on meaningful terms
+            stop_words = {'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'this', 'that', 'is', 'are', 'was', 'were', 'have', 'has', 'had', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'cant', 'im', 'having', 'getting', 'my', 'me', 'i'}
+            
+            # Extract meaningful words (3+ characters, not stop words)
+            meaningful_words = [word for word in re.findall(r'\b\w{3,}\b', query_lower) if word not in stop_words]
+            
+            # Prioritize technical terms and error-related keywords
+            priority_terms = []
+            regular_terms = []
+            
+            technical_indicators = ['error', 'timeout', 'connection', 'failed', 'database', 'server', 'api', 'auth', 'login', 'network', 'file', 'permission', 'invalid', 'missing', 'sql', 'json', 'xml', 'config', 'service']
+            
+            for word in meaningful_words:
+                if word in technical_indicators or len(word) > 6:  # Long words are often technical
+                    priority_terms.append(word)
+                else:
+                    regular_terms.append(word)
+            
+            # Combine priority terms first, then regular terms
+            search_terms = priority_terms + regular_terms
+            return ' '.join(search_terms[:5])  # Limit to top 5 terms for focused search
+        
+        extracted_keywords = extract_search_keywords(user_query)
+        logger.info(f"Extracted search keywords: '{extracted_keywords}'")
+        
+        # 1. Find the most relevant page in Confluence or use demo data as fallback
+        if not confluence_client:
+            logger.warning("Confluence not configured - using demo data as fallback")
+            # Use demo data when Confluence is not available
+            demo_match = find_demo_match(user_query)
+            
+            # Enhance with Ollama if available
+            enhanced_data = ollama_service.enhance_error_analysis(user_query, demo_match)
+            
+            # Generate conversational response
+            conversational_response = ollama_service.generate_conversational_response(
+                user_query, enhanced_data
+            )
+            
+            # Get suggestions
+            suggestions = ollama_service.suggest_related_queries(
+                user_query, enhanced_data.get('category', 'general')
+            )
+            
+            return ErrorResponse(
+                user_issue=user_query,
+                explanation=enhanced_data.get("explanation", demo_match.get("explanation", "No explanation found.")),
+                resolution_steps=enhanced_data.get("resolution", demo_match.get("resolution", "No resolution steps found.")),
+                resolution=enhanced_data.get("resolution", demo_match.get("resolution", "No resolution steps found.")),
+                enhanced=enhanced_data.get("enhanced", False),
+                severity=enhanced_data.get("severity", "medium"),
+                category=enhanced_data.get("category", "general"),
+                conversational_response=conversational_response,
+                suggestions=suggestions
+            )
+        
+        # Try multiple search strategies for better results
+        search_results = None
+        
+        # Strategy 1: If we have an error log number, search for it specifically
+        if extracted_error_num:
+            search_query = f"Error Log #{extracted_error_num}"
+            logger.info(f"Strategy 1 - Searching for specific error log: '{search_query}'")
+            search_results = confluence_client.search_pages(search_query, limit=1)
+        
+        # Strategy 2: Search using extracted keywords
+        if not search_results and extracted_keywords:
+            logger.info(f"Strategy 2 - Searching with keywords: '{extracted_keywords}'")
+            search_results = confluence_client.search_pages(extracted_keywords, limit=1)
+        
+        # Strategy 3: Fallback to original query
         if not search_results:
+            logger.info(f"Strategy 3 - Fallback to original query: '{user_query}'")
+            search_results = confluence_client.search_pages(user_query, limit=1)
+        
+        if not search_results:
+            logger.error("No search results found for either targeted or original query")
             return ErrorResponse(
                 user_issue=user_query,
                 explanation="No relevant documentation found for this error.",
@@ -118,6 +365,7 @@ async def process_query(request: QueryRequest) -> ErrorResponse:
             # Find the best match for the user's query
             best_match = html_extractor.find_best_match(user_query, all_entries)
             if best_match:
+                logger.info(f"Found structured match: {best_match.get('error_code', 'Unknown')}")
                 # Enhance with Ollama if available
                 enhanced_data = ollama_service.enhance_error_analysis(user_query, best_match)
                 
@@ -142,6 +390,8 @@ async def process_query(request: QueryRequest) -> ErrorResponse:
                     conversational_response=conversational_response,
                     suggestions=suggestions
                 )
+            else:
+                logger.warning("No structured match found despite having entries")
         
         # Fallback to universal parser if no structured entries found
         logger.info(f"No structured entries found, using universal parser...")
@@ -197,19 +447,29 @@ async def ollama_status():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
-    ollama_available = ollama_service.is_available()
-    return {
-        "status": "healthy", 
-        "service": "helpbot",
-        "ollama_available": ollama_available,
-        "features": {
-            "confluence_integration": True,
-            "natural_language_processing": ollama_available,
-            "error_enhancement": ollama_available,
-            "conversational_responses": ollama_available
+    """Health check endpoint with service status"""
+    try:
+        ollama_available = ollama_service.is_available()
+        confluence_configured = confluence_client is not None
+        
+        return {
+            "status": "healthy",
+            "service": "helpbot",
+            "mode": "confluence" if confluence_configured else "demo",
+            "confluence_configured": confluence_configured,
+            "ollama_available": ollama_available,
+            "features": {
+                "confluence_integration": confluence_configured,
+                "demo_data": not confluence_configured,
+                "natural_language_processing": ollama_available,
+                "error_enhancement": ollama_available,
+                "conversational_responses": ollama_available,
+                "widget_sidebar_toggle": True
+            }
         }
-    }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        raise HTTPException(status_code=500, detail="Health check failed")
 
 if __name__ == "__main__":
     import uvicorn
