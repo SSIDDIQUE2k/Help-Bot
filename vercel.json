@@ -13,5 +13,10 @@
   ],
   "env": {
     "ENVIRONMENT": "production"
+  },
+  "functions": {
+    "backend/app.py": {
+      "maxDuration": 30
+    }
   }
 } 
