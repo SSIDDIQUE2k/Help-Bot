@@ -8,9 +8,9 @@ import os
 from typing import Dict, Any
 from dotenv import load_dotenv
 
-from helpbot.confluence_client import ConfluenceClient
-from helpbot.html_extractor import HTMLExtractor
-from helpbot.ollama_service import OllamaService
+from backend.helpbot.confluence_client import ConfluenceClient
+from backend.helpbot.html_extractor import HTMLExtractor
+from backend.helpbot.ollama_service import OllamaService
 
 # Load environment variables from .env
 load_dotenv('.env')
