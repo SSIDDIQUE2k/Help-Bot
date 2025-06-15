@@ -1,0 +1,22 @@
+name: helpbot
+type: python:3.11
+
+variables:
+    env:
+        ENVIRONMENT: production
+
+web:
+    commands:
+        start: uvicorn backend.app:app --host 0.0.0.0 --port $PORT
+    
+    locations:
+        "/":
+            root: "backend"
+            passthru: true
+
+disk: 1024
+
+mounts:
+    "/.cache":
+        source: local
+        source_path: cache 
