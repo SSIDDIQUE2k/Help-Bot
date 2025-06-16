@@ -41,21 +41,38 @@ logger.info(f"Loaded config - URL: {CONFLUENCE_URL}, User: {CONFLUENCE_USERNAME}
 # Initialize clients with error handling
 confluence_client = None
 try:
-    if CONFLUENCE_URL and CONFLUENCE_USERNAME and CONFLUENCE_API_TOKEN and CONFLUENCE_SPACE_KEY:
+    confluence_url = os.getenv("CONFLUENCE_URL")
+    confluence_username = os.getenv("CONFLUENCE_USERNAME")
+    confluence_api_token = os.getenv("CONFLUENCE_API_TOKEN")
+    confluence_space_key = os.getenv("CONFLUENCE_SPACE_KEY")
+    
+    if confluence_url and confluence_username and confluence_api_token and confluence_space_key:
+        logger.info(f"Loaded config - URL: {confluence_url}, User: {confluence_username}, Space: {confluence_space_key}")
         confluence_client = ConfluenceClient(
-            base_url=CONFLUENCE_URL,
-            username=CONFLUENCE_USERNAME,
-            api_token=CONFLUENCE_API_TOKEN,
-            space_key=CONFLUENCE_SPACE_KEY
+            confluence_url, confluence_username, confluence_api_token, confluence_space_key
         )
         logger.info("Confluence client initialized successfully")
     else:
-        logger.warning("Confluence configuration missing - running in demo mode")
+        logger.warning("Confluence environment variables not found - running in demo mode")
+        logger.warning(f"Missing vars: URL={bool(confluence_url)}, User={bool(confluence_username)}, Token={bool(confluence_api_token)}, Space={bool(confluence_space_key)}")
 except Exception as e:
     logger.error(f"Failed to initialize Confluence client: {e}")
+    logger.warning("Continuing in demo mode")
     confluence_client = None
 html_extractor = HTMLExtractor()
-ollama_service = OllamaService()
+
+# Initialize Ollama service
+ollama_service = None
+try:
+    ollama_service = OllamaService()
+    if ollama_service.is_available():
+        logger.info(f"Initialized Ollama with model: {ollama_service.model_name}")
+    else:
+        logger.warning("Ollama service not available - enhanced features disabled")
+except Exception as e:
+    logger.error(f"Failed to initialize Ollama service: {e}")
+    logger.warning("Continuing without Ollama - basic mode only")
+    ollama_service = OllamaService()  # Create instance but won't be available
 
 # Demo data for when Confluence is not configured
 DEMO_ERROR_DATA = [
