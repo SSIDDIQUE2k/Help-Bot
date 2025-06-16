@@ -234,6 +234,25 @@ async def test_connection():
         logger.error(f"Connection test endpoint failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to test connection.")
 
+@app.get("/debug-search")
+async def debug_search():
+    """Debug Confluence search functionality"""
+    if not confluence_client:
+        return {"status": "error", "message": "Confluence not configured"}
+    
+    try:
+        # Test basic search
+        results = confluence_client.search_pages("Error", limit=5)
+        return {
+            "status": "success",
+            "search_query": "Error",
+            "results_count": len(results) if results else 0,
+            "results": results[:3] if results else [],  # First 3 results only
+            "message": f"Found {len(results) if results else 0} results for 'Error'"
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e), "error_type": type(e).__name__}
+
 @app.post("/query")
 async def process_query(request: QueryRequest) -> ErrorResponse:
     """Processes user query using the multi-format extraction engine."""
