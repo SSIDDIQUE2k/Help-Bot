@@ -2,7 +2,6 @@ import requests
 import logging
 from typing import Dict, List, Optional, Any
 import time
-from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +65,6 @@ class ConfluenceClient:
                 "error_type": "unknown"
             }
     
-    @lru_cache(maxsize=100)
     def search_pages(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Search for pages in the Confluence space"""
         try:
