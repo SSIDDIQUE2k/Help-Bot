@@ -1,5 +1,5 @@
 [deploy]
-startCommand = "python backend/app.py"
+startCommand = "python -m backend.app"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
