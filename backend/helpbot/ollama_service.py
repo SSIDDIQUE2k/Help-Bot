@@ -32,6 +32,20 @@ except ImportError as e:
         def parse(self, text):
             return {}
 
+# Try to import Hugging Face Hub, but make it optional
+try:
+    from huggingface_hub import InferenceClient
+    HF_HUB_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Hugging Face Hub not available: {e}")
+    HF_HUB_AVAILABLE = False
+    # Create dummy class for when HF Hub is not available
+    class InferenceClient:
+        def __init__(self, *args, **kwargs):
+            pass
+        def text_generation(self, *args, **kwargs):
+            return ""
+
 class ErrorAnalysisParser(BaseOutputParser):
     """Custom parser for error analysis responses"""
     
@@ -77,62 +91,109 @@ class ErrorAnalysisParser(BaseOutputParser):
             }
 
 class HuggingFaceService:
-    """Service for interacting with Hugging Face API"""
+    """Service for interacting with Hugging Face Hub API"""
     
     def __init__(self, api_token: Optional[str] = None, model: str = "microsoft/DialoGPT-medium"):
-        self.api_token = api_token or os.getenv("HUGGINGFACE_API_TOKEN")
-        self.model = model
-        self.api_url = f"https://api-inference.huggingface.co/models/{model}"
-        self.headers = {}
+        self.api_token = api_token or os.getenv("HUGGINGFACE_API_TOKEN") or os.getenv("HF_TOKEN")
+        # Use better models for text generation
+        self.model = "microsoft/DialoGPT-medium"  # Good for conversational responses
+        self.text_model = "google/flan-t5-base"   # Good for structured tasks
+        self.available = HF_HUB_AVAILABLE and bool(self.api_token)
         
-        if self.api_token:
-            self.headers["Authorization"] = f"Bearer {self.api_token}"
-        
-        logger.info(f"Initialized Hugging Face service with model: {model}")
+        if self.available:
+            try:
+                # Initialize inference clients
+                self.client = InferenceClient(model=self.model, token=self.api_token)
+                self.text_client = InferenceClient(model=self.text_model, token=self.api_token)
+                logger.info(f"Initialized Hugging Face Hub service with models: {self.model}, {self.text_model}")
+            except Exception as e:
+                logger.error(f"Failed to initialize Hugging Face clients: {e}")
+                self.available = False
+        else:
+            logger.warning("Hugging Face Hub not available - missing token or library")
     
     def is_available(self) -> bool:
-        """Check if Hugging Face API is available"""
-        if not self.api_token:
-            logger.warning("Hugging Face API token not provided")
+        """Check if Hugging Face Hub API is available"""
+        if not self.available:
             return False
         
         try:
             # Test with a simple query
             response = self.query("Hello")
-            return bool(response)
+            return bool(response and len(response.strip()) > 0)
         except Exception as e:
-            logger.warning(f"Hugging Face API not available: {e}")
+            logger.warning(f"Hugging Face Hub API test failed: {e}")
             return False
     
-    def query(self, prompt: str, max_length: int = 500) -> str:
-        """Send query to Hugging Face API"""
+    def query(self, prompt: str, max_length: int = 200, use_text_model: bool = False) -> str:
+        """Send query to Hugging Face Hub API"""
+        if not self.available:
+            return ""
+        
         try:
+            # Choose the right client based on task
+            client = self.text_client if use_text_model else self.client
+            
+            # Use text generation
+            response = client.text_generation(
+                prompt,
+                max_new_tokens=max_length,
+                temperature=0.3,
+                do_sample=True,
+                return_full_text=False
+            )
+            
+            if isinstance(response, str):
+                return response.strip()
+            elif hasattr(response, 'generated_text'):
+                return response.generated_text.strip()
+            else:
+                logger.warning(f"Unexpected Hugging Face response type: {type(response)}")
+                return str(response).strip()
+                
+        except Exception as e:
+            logger.error(f"Error querying Hugging Face Hub: {e}")
+            # Fallback to direct API call if Hub client fails
+            return self._fallback_api_call(prompt, max_length)
+    
+    def _fallback_api_call(self, prompt: str, max_length: int) -> str:
+        """Fallback to direct API call if Hub client fails"""
+        try:
+            api_url = f"https://api-inference.huggingface.co/models/{self.text_model}"
+            headers = {
+                "Authorization": f"Bearer {self.api_token}",
+                "Content-Type": "application/json"
+            }
+            
             payload = {
                 "inputs": prompt,
                 "parameters": {
-                    "max_length": max_length,
+                    "max_new_tokens": max_length,
                     "temperature": 0.3,
                     "do_sample": True,
                     "return_full_text": False
+                },
+                "options": {
+                    "wait_for_model": True
                 }
             }
             
-            response = requests.post(self.api_url, headers=self.headers, json=payload, timeout=30)
+            response = requests.post(api_url, headers=headers, json=payload, timeout=60)
             
             if response.status_code == 200:
                 result = response.json()
                 if isinstance(result, list) and len(result) > 0:
-                    return result[0].get('generated_text', '').strip()
-                elif isinstance(result, dict):
-                    return result.get('generated_text', '').strip()
-                else:
-                    return str(result)
+                    if isinstance(result[0], dict) and 'generated_text' in result[0]:
+                        return result[0]['generated_text'].strip()
+                    elif isinstance(result[0], str):
+                        return result[0].strip()
+                return ""
             else:
-                logger.error(f"Hugging Face API error: {response.status_code} - {response.text}")
+                logger.error(f"Fallback API call failed: {response.status_code}")
                 return ""
                 
         except Exception as e:
-            logger.error(f"Error querying Hugging Face API: {e}")
+            logger.error(f"Fallback API call error: {e}")
             return ""
 
 class OllamaService:
@@ -178,8 +239,8 @@ class OllamaService:
     def _initialize_huggingface(self):
         """Initialize Hugging Face service"""
         try:
-            # Use a smaller, faster model for production
-            self.huggingface_service = HuggingFaceService(model="microsoft/DialoGPT-small")
+            # Initialize with default text generation model
+            self.huggingface_service = HuggingFaceService()
             logger.info("Initialized Hugging Face service as backup")
         except Exception as e:
             logger.error(f"Failed to initialize Hugging Face service: {e}")
@@ -212,7 +273,7 @@ class OllamaService:
         """Check if any AI service is available"""
         return self.current_provider is not None
     
-    def _invoke_ai(self, prompt: str) -> str:
+    def _invoke_ai(self, prompt: str, use_text_model: bool = False) -> str:
         """Invoke the available AI service"""
         if self.current_provider == "ollama" and self.ollama_llm:
             try:
@@ -222,11 +283,11 @@ class OllamaService:
                 # Fall back to Hugging Face
                 if self.huggingface_service:
                     self.current_provider = "huggingface"
-                    return self.huggingface_service.query(prompt)
+                    return self.huggingface_service.query(prompt, use_text_model=use_text_model)
                 raise e
         
         elif self.current_provider == "huggingface" and self.huggingface_service:
-            return self.huggingface_service.query(prompt)
+            return self.huggingface_service.query(prompt, use_text_model=use_text_model)
         
         else:
             return "AI services not available"
@@ -268,7 +329,7 @@ Category:
 [connection/configuration/authentication/data/general]
 """
             
-            response = self._invoke_ai(prompt)
+            response = self._invoke_ai(prompt, use_text_model=True)  # Use text model for structured analysis
             enhanced_data = self.parser.parse(response)
             
             # Preserve original Confluence data and add AI analysis
@@ -321,7 +382,7 @@ Provide a brief, friendly summary that:
 Keep it short and conversational, like you're talking to a colleague. Don't repeat the full technical details.
 """
             
-            response = self._invoke_ai(prompt)
+            response = self._invoke_ai(prompt, use_text_model=False)  # Use conversational model for responses
             return response.strip()
             
         except Exception as e:
@@ -343,7 +404,7 @@ Return only the queries, one per line, without numbers or bullets.
 Make them specific and realistic.
 """
             
-            response = self._invoke_ai(prompt)
+            response = self._invoke_ai(prompt, use_text_model=True)  # Use text model for structured suggestions
             suggestions = [line.strip() for line in response.split('\n') if line.strip()]
             return suggestions[:3]  # Limit to 3 suggestions
             
