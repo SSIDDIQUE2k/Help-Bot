@@ -1,11 +1,10 @@
 [build]
   base = "."
   publish = "backend/static"
-  command = "pip install -r requirements.txt && echo 'Build completed'"
+  command = "./build.sh"
 
 [build.environment]
   PYTHON_VERSION = "3.9"
-  ENVIRONMENT = "production"
 
 [[redirects]]
   from = "/api/*"
@@ -18,5 +17,4 @@
   status = 200
 
 [functions]
-  directory = "netlify/functions"
-  python_runtime = "python3.9" 
+  directory = "netlify/functions" 
