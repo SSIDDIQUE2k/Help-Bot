@@ -35,7 +35,28 @@ pip install --only-binary=all mangum==0.17.0
 # Create required directories
 echo "Creating directories..."
 mkdir -p backend/static
+mkdir -p backend/templates
+
+# Copy static files to publish directory if needed
+echo "Setting up static files..."
+if [ -f "backend/static/helpbot-widget.js" ]; then
+    echo "✅ Widget JavaScript found"
+else
+    echo "⚠️  Widget JavaScript not found"
+fi
+
+if [ -f "backend/templates/index.html" ]; then
+    echo "✅ Index template found"
+else
+    echo "⚠️  Index template not found"
+fi
+
+# Create a simple test file to verify publish directory
+echo "Test deployment at $(date)" > backend/static/deploy-test.txt
 
 echo "✅ All dependencies installed successfully (binary-only)!"
 echo "📦 Package list:"
 pip list | grep -E "(fastapi|uvicorn|requests|beautifulsoup4|httpx|pydantic|mangum)" 
+
+echo "📁 Directory structure:"
+ls -la backend/ | head -10 
