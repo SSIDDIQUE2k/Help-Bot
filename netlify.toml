@@ -1,5 +1,5 @@
 [build]
-  command = "python3 -m pip install -r requirements.txt && mkdir -p backend/static"
+  command = "python3 -m pip install --upgrade pip && python3 -m pip install --only-binary=all --prefer-binary -r requirements-netlify.txt && mkdir -p backend/static"
   functions = "netlify/functions"
   publish = "backend/static"
 
