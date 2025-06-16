@@ -51,6 +51,25 @@ else
     echo "⚠️  Index template not found"
 fi
 
+# Copy _redirects file to publish directory
+echo "Setting up redirects..."
+if [ -f "_redirects" ]; then
+    cp _redirects backend/static/_redirects
+    echo "✅ Redirects file copied to publish directory"
+else
+    echo "⚠️  Redirects file not found"
+fi
+
+# Verify function exists
+echo "Checking function setup..."
+if [ -f "netlify/functions/app.py" ]; then
+    echo "✅ Netlify function found"
+    # Make sure it's executable
+    chmod +x netlify/functions/app.py
+else
+    echo "❌ Netlify function not found!"
+fi
+
 # Create a simple test file to verify publish directory
 echo "Test deployment at $(date)" > backend/static/deploy-test.txt
 
@@ -59,4 +78,7 @@ echo "📦 Package list:"
 pip list | grep -E "(fastapi|uvicorn|requests|beautifulsoup4|httpx|pydantic|mangum)" 
 
 echo "📁 Directory structure:"
-ls -la backend/ | head -10 
+ls -la backend/ | head -10
+
+echo "🔧 Function directory:"
+ls -la netlify/functions/ 

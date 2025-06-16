@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import os
 from pathlib import Path
@@ -52,6 +54,9 @@ FALLBACK_HTML = """
 </body>
 </html>
 """
+
+# Try to import and create the handler
+handler = None
 
 try:
     from mangum import Mangum
@@ -116,4 +121,15 @@ except Exception as e:
                 'Content-Type': 'application/json',
             },
             'body': f'{{"error": "General error", "details": "{str(e)}", "traceback": "{error_details}"}}'
+        }
+
+# Ensure handler is always defined (Netlify requirement)
+if handler is None:
+    def handler(event, context):
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'text/html',
+            },
+            'body': FALLBACK_HTML
         } 
