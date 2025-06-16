@@ -320,17 +320,38 @@ async def process_query(request: QueryRequest) -> ErrorResponse:
         if extracted_error_num:
             search_query = f"Error Log #{extracted_error_num}"
             logger.info(f"Strategy 1 - Searching for specific error log: '{search_query}'")
-            search_results = confluence_client.search_pages(search_query, limit=1)
+            try:
+                search_results = confluence_client.search_pages(search_query, limit=1)
+                logger.info(f"Strategy 1 search results: {len(search_results) if search_results else 0} results")
+                if search_results:
+                    logger.info(f"First result: {search_results[0].get('title', 'No title')}")
+            except Exception as e:
+                logger.error(f"Strategy 1 search failed: {e}")
+                search_results = None
         
         # Strategy 2: Search using extracted keywords
         if not search_results and extracted_keywords:
             logger.info(f"Strategy 2 - Searching with keywords: '{extracted_keywords}'")
-            search_results = confluence_client.search_pages(extracted_keywords, limit=1)
+            try:
+                search_results = confluence_client.search_pages(extracted_keywords, limit=1)
+                logger.info(f"Strategy 2 search results: {len(search_results) if search_results else 0} results")
+                if search_results:
+                    logger.info(f"First result: {search_results[0].get('title', 'No title')}")
+            except Exception as e:
+                logger.error(f"Strategy 2 search failed: {e}")
+                search_results = None
         
         # Strategy 3: Fallback to original query
         if not search_results:
             logger.info(f"Strategy 3 - Fallback to original query: '{user_query}'")
-            search_results = confluence_client.search_pages(user_query, limit=1)
+            try:
+                search_results = confluence_client.search_pages(user_query, limit=1)
+                logger.info(f"Strategy 3 search results: {len(search_results) if search_results else 0} results")
+                if search_results:
+                    logger.info(f"First result: {search_results[0].get('title', 'No title')}")
+            except Exception as e:
+                logger.error(f"Strategy 3 search failed: {e}")
+                search_results = None
         
         if not search_results:
             logger.error("No search results found for either targeted or original query")
