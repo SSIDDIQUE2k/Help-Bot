@@ -3,12 +3,6 @@
   functions = "netlify/functions"
   publish = "backend/static"
 
-[functions]
-  directory = "netlify/functions"
-
-[functions.app]
-  runtime = "python3.9"
-
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/app/:splat"

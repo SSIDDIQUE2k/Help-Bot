@@ -60,14 +60,28 @@ else
     echo "⚠️  Redirects file not found"
 fi
 
-# Verify function exists
+# Create runtime configuration for Netlify functions
+echo "Setting up function runtime..."
+mkdir -p netlify/functions
+echo "python-3.9" > netlify/functions/runtime.txt
+echo "✅ Runtime configuration created"
+
+# Verify function exists and make executable
 echo "Checking function setup..."
 if [ -f "netlify/functions/app.py" ]; then
-    echo "✅ Netlify function found"
-    # Make sure it's executable
+    echo "✅ Main Netlify function found"
     chmod +x netlify/functions/app.py
+    echo "✅ Made app.py executable"
 else
-    echo "❌ Netlify function not found!"
+    echo "❌ Main Netlify function not found!"
+fi
+
+if [ -f "netlify/functions/hello.py" ]; then
+    echo "✅ Test Netlify function found"
+    chmod +x netlify/functions/hello.py
+    echo "✅ Made hello.py executable"
+else
+    echo "❌ Test Netlify function not found!"
 fi
 
 # Create a simple test file to verify publish directory
@@ -80,5 +94,11 @@ pip list | grep -E "(fastapi|uvicorn|requests|beautifulsoup4|httpx|pydantic|mang
 echo "📁 Directory structure:"
 ls -la backend/ | head -10
 
-echo "🔧 Function directory:"
-ls -la netlify/functions/ 
+echo "🔧 Function directory contents:"
+ls -la netlify/functions/
+
+echo "🐍 Python version:"
+python --version
+
+echo "📄 Function file details:"
+file netlify/functions/*.py 
