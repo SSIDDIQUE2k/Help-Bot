@@ -5,11 +5,11 @@ python-dotenv==1.0.0
 requests==2.31.0
 beautifulsoup4==4.12.2
 httpx==0.25.2
-pydantic==2.5.0
+pydantic==2.4.2
 jinja2==3.1.2
 python-multipart==0.0.6
 aiofiles==23.2.1
 mangum==0.17.0
 
-# Use requests instead of huggingface_hub to avoid compilation issues
-# We'll implement HF API calls using requests directly 
+# Removed: huggingface_hub, lxml (require compilation)
+# Using SimpleHuggingFaceService with requests instead 

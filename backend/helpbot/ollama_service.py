@@ -32,18 +32,20 @@ except ImportError as e:
         def parse(self, text):
             return {}
 
-# Try to import Hugging Face Hub, but make it optional
+# Import simple Hugging Face service for Netlify compatibility
 try:
-    from huggingface_hub import InferenceClient
+    from .huggingface_simple import SimpleHuggingFaceService
     HF_HUB_AVAILABLE = True
 except ImportError as e:
-    logger.warning(f"Hugging Face Hub not available: {e}")
+    logger.warning(f"Simple Hugging Face service not available: {e}")
     HF_HUB_AVAILABLE = False
-    # Create dummy class for when HF Hub is not available
-    class InferenceClient:
+    # Create dummy class for when HF service is not available
+    class SimpleHuggingFaceService:
         def __init__(self, *args, **kwargs):
             pass
-        def text_generation(self, *args, **kwargs):
+        def is_available(self):
+            return False
+        def query(self, *args, **kwargs):
             return ""
 
 class ErrorAnalysisParser(BaseOutputParser):
@@ -91,26 +93,23 @@ class ErrorAnalysisParser(BaseOutputParser):
             }
 
 class HuggingFaceService:
-    """Service for interacting with Hugging Face Hub API"""
+    """Service for interacting with Hugging Face API using simple requests"""
     
     def __init__(self, api_token: Optional[str] = None, model: str = "microsoft/DialoGPT-medium"):
         self.api_token = api_token or os.getenv("HUGGINGFACE_API_TOKEN") or os.getenv("HF_TOKEN")
-        # Use better models for text generation
-        self.model = "microsoft/DialoGPT-medium"  # Good for conversational responses
-        self.text_model = "google/flan-t5-base"   # Good for structured tasks
         self.available = HF_HUB_AVAILABLE and bool(self.api_token)
         
         if self.available:
             try:
-                # Initialize inference clients
-                self.client = InferenceClient(model=self.model, token=self.api_token)
-                self.text_client = InferenceClient(model=self.text_model, token=self.api_token)
-                logger.info(f"Initialized Hugging Face Hub service with models: {self.model}, {self.text_model}")
+                # Initialize simple service
+                self.client = SimpleHuggingFaceService(api_token=self.api_token)
+                self.available = self.client.is_available()
+                logger.info("Initialized Simple Hugging Face service")
             except Exception as e:
-                logger.error(f"Failed to initialize Hugging Face clients: {e}")
+                logger.error(f"Failed to initialize Simple Hugging Face service: {e}")
                 self.available = False
         else:
-            logger.warning("Hugging Face Hub not available - missing token or library")
+            logger.warning("Hugging Face service not available - missing token or library")
     
     def is_available(self) -> bool:
         """Check if Hugging Face Hub API is available"""
@@ -126,75 +125,20 @@ class HuggingFaceService:
             return False
     
     def query(self, prompt: str, max_length: int = 200, use_text_model: bool = False) -> str:
-        """Send query to Hugging Face Hub API"""
+        """Send query to Hugging Face API using simple service"""
         if not self.available:
             return ""
         
         try:
-            # Choose the right client based on task
-            client = self.text_client if use_text_model else self.client
-            
-            # Use text generation
-            response = client.text_generation(
-                prompt,
-                max_new_tokens=max_length,
-                temperature=0.3,
-                do_sample=True,
-                return_full_text=False
-            )
-            
-            if isinstance(response, str):
-                return response.strip()
-            elif hasattr(response, 'generated_text'):
-                return response.generated_text.strip()
-            else:
-                logger.warning(f"Unexpected Hugging Face response type: {type(response)}")
-                return str(response).strip()
+            # Use the simple service
+            response = self.client.query(prompt, max_length=max_length, use_chat_model=not use_text_model)
+            return response.strip() if response else ""
                 
         except Exception as e:
-            logger.error(f"Error querying Hugging Face Hub: {e}")
-            # Fallback to direct API call if Hub client fails
-            return self._fallback_api_call(prompt, max_length)
-    
-    def _fallback_api_call(self, prompt: str, max_length: int) -> str:
-        """Fallback to direct API call if Hub client fails"""
-        try:
-            api_url = f"https://api-inference.huggingface.co/models/{self.text_model}"
-            headers = {
-                "Authorization": f"Bearer {self.api_token}",
-                "Content-Type": "application/json"
-            }
-            
-            payload = {
-                "inputs": prompt,
-                "parameters": {
-                    "max_new_tokens": max_length,
-                    "temperature": 0.3,
-                    "do_sample": True,
-                    "return_full_text": False
-                },
-                "options": {
-                    "wait_for_model": True
-                }
-            }
-            
-            response = requests.post(api_url, headers=headers, json=payload, timeout=60)
-            
-            if response.status_code == 200:
-                result = response.json()
-                if isinstance(result, list) and len(result) > 0:
-                    if isinstance(result[0], dict) and 'generated_text' in result[0]:
-                        return result[0]['generated_text'].strip()
-                    elif isinstance(result[0], str):
-                        return result[0].strip()
-                return ""
-            else:
-                logger.error(f"Fallback API call failed: {response.status_code}")
-                return ""
-                
-        except Exception as e:
-            logger.error(f"Fallback API call error: {e}")
+            logger.error(f"Error querying Simple Hugging Face service: {e}")
             return ""
+    
+
 
 class OllamaService:
     """Unified service for AI processing with Ollama primary and Hugging Face backup"""
