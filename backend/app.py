@@ -40,25 +40,33 @@ logger.info(f"Loaded config - URL: {CONFLUENCE_URL}, User: {CONFLUENCE_USERNAME}
 
 # Initialize clients with error handling
 confluence_client = None
-try:
-    confluence_url = os.getenv("CONFLUENCE_URL")
-    confluence_username = os.getenv("CONFLUENCE_USERNAME")
-    confluence_api_token = os.getenv("CONFLUENCE_API_TOKEN")
-    confluence_space_key = os.getenv("CONFLUENCE_SPACE_KEY")
-    
-    if confluence_url and confluence_username and confluence_api_token and confluence_space_key:
-        logger.info(f"Loaded config - URL: {confluence_url}, User: {confluence_username}, Space: {confluence_space_key}")
-        confluence_client = ConfluenceClient(
-            confluence_url, confluence_username, confluence_api_token, confluence_space_key
-        )
-        logger.info("Confluence client initialized successfully")
-    else:
-        logger.warning("Confluence environment variables not found - running in demo mode")
-        logger.warning(f"Missing vars: URL={bool(confluence_url)}, User={bool(confluence_username)}, Token={bool(confluence_api_token)}, Space={bool(confluence_space_key)}")
-except Exception as e:
-    logger.error(f"Failed to initialize Confluence client: {e}")
-    logger.warning("Continuing in demo mode")
-    confluence_client = None
+    try:
+        confluence_url = os.getenv("CONFLUENCE_URL")
+        confluence_username = os.getenv("CONFLUENCE_USERNAME")
+        confluence_api_token = os.getenv("CONFLUENCE_API_TOKEN")
+        confluence_space_key = os.getenv("CONFLUENCE_SPACE_KEY")
+        
+        if confluence_url and confluence_username and confluence_api_token and confluence_space_key:
+            logger.info(f"Loaded config - URL: {confluence_url}, User: {confluence_username}, Space: {confluence_space_key}")
+            logger.info(f"API Token: {confluence_api_token[:10]}...")  # Log first 10 chars for debugging
+            confluence_client = ConfluenceClient(
+                confluence_url, confluence_username, confluence_api_token, confluence_space_key
+            )
+            logger.info("Confluence client initialized successfully")
+            
+            # Test connection immediately
+            try:
+                test_results = confluence_client.search_pages("test", limit=1)
+                logger.info(f"Connection test: {len(test_results) if test_results else 0} results")
+            except Exception as test_e:
+                logger.error(f"Connection test failed: {test_e}")
+        else:
+            logger.warning("Confluence environment variables not found - running in demo mode")
+            logger.warning(f"Missing vars: URL={bool(confluence_url)}, User={bool(confluence_username)}, Token={bool(confluence_api_token)}, Space={bool(confluence_space_key)}")
+    except Exception as e:
+        logger.error(f"Failed to initialize Confluence client: {e}")
+        logger.warning("Continuing in demo mode")
+        confluence_client = None
 html_extractor = HTMLExtractor()
 
 # Initialize Ollama service
