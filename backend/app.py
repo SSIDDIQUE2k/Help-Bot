@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import logging
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
 from dotenv import load_dotenv
 
 from backend.helpbot.confluence_client import ConfluenceClient
@@ -201,13 +201,13 @@ class ErrorResponse(BaseModel):
     user_issue: str
     explanation: str
     resolution_steps: str
-    resolution: str | None = None
+    resolution: Optional[str] = None
     status: str = "success"
     enhanced: bool = False
     severity: str = "medium"
     category: str = "general"
-    conversational_response: str | None = None
-    suggestions: list[str] = []
+    conversational_response: Optional[str] = None
+    suggestions: List[str] = []
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():

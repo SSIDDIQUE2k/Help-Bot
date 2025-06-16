@@ -115,4 +115,4 @@ coverage/
 
 # Temporary files
 tmp/
-temp/
+temp/requirements.txt.backup
