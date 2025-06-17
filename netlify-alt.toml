@@ -1,9 +1,0 @@
-[build]
-  command = "pip install --only-binary=all fastapi uvicorn requests beautifulsoup4 httpx pydantic jinja2 python-multipart aiofiles mangum python-dotenv && mkdir -p backend/static"
-  functions = "netlify/functions"
-  publish = "backend/static"
-
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/app"
-  status = 200 
